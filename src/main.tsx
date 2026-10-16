@@ -22,7 +22,7 @@ function renderDemo() {
       </div>
     </main>
   ) : (
-    <div className="fixed bottom-4 right-4 z-30 flex flex-wrap gap-2"><a href="#dot-pattern" className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-600 shadow-sm">Ver Dot Pattern ↗</a><a href="#dock" className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-600 shadow-sm">Ver Dock ↗</a></div>
+    <div className="preview-demo-links fixed bottom-4 right-4 z-30 flex flex-wrap gap-2"><a href="#dot-pattern" className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-600 shadow-sm">Ver Dot Pattern ↗</a><a href="#dock" className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-600 shadow-sm">Ver Dock ↗</a></div>
   ));
 }
 window.addEventListener('hashchange', renderDemo);

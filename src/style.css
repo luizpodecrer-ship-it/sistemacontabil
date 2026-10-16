@@ -67,3 +67,18 @@ body { margin:0; color:#171717; background:#fafafa; font-family:var(--font-sans)
 :root { --background: #ffffff; --foreground: #171717; --border: #e5e5e5; }
 @custom-variant dark (&:is(.dark *));
 .dark { --background: #171717; --foreground: #fafafa; --border: #404040; }
+
+/* Shared form standard: labels, gray examples, focus and validation. */
+.form-control {
+  width:100%; min-height:44px; border:1px solid #d4d4d4; border-radius:12px;
+  padding:11px 14px; background:#fff; color:#171717; font-family:var(--body-font); font-size:14px;
+  transition:border-color .15s,box-shadow .15s;
+}
+.form-control::placeholder { color:#a3a3a3; opacity:1; }
+.form-control:focus { outline:none; border-color:#525252; box-shadow:0 0 0 3px #1717170d; }
+.form-control[aria-invalid="true"] { border-color:#b91c1c; }
+.form-control[aria-invalid="true"]:focus { box-shadow:0 0 0 3px #b91c1c12; }
+select.form-control:has(option[value=""]:checked) { color:#737373; }
+.form-control:disabled { background:#f5f5f5; color:#737373; cursor:not-allowed; }
+
+.company-module .preview-demo-links { display:none; }

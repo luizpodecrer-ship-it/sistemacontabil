@@ -39,3 +39,19 @@ Validação da integração: `npm run typecheck`, `npm run export:preview` e ver
 ## Publicação na Vercel
 
 Importe este repositório, selecione a branch `main` e mantenha a pasta raiz `./`. O arquivo `vercel.json` define Vite, instalação com `npm ci`, build com `npm run build` e saída `dist`. Node 24 é indicado em `package.json`. Esta prévia não precisa de variáveis de ambiente. Cada push em `main` pode acionar a publicação automática, conforme a integração Git configurada na Vercel. Não inclui autenticação ou tratamento de dados reais.
+
+## Cadastro de empresas
+
+Acesse **Empresas → Nova empresa**. O módulo agora usa React/TypeScript, com nove abas: identificação, endereço e contatos, atividades, enquadramentos, sócios e representantes, estabelecimentos, atendimento, documentos e histórico. A lista de Empresas exibe apenas os cadastros locais; os exemplos dos demais módulos continuam demonstrativos.
+
+- `components/ui/form-field.tsx`: campo reutilizável com label, exemplo cinza, mensagem de ajuda, estado inválido e erro associado para tecnologia assistiva.
+- `lib/formats.ts`: máscaras e verificações compartilhadas (CNPJ numérico/alfanumérico, CPF, telefone com DDD, CEP, CNAE e moeda).
+- `src/features/companies/model.ts`: modelo de dados e regras de rascunho/conclusão. Catálogos oficiais de natureza jurídica e CNAE ainda não estão integrados: os campos aceitam entrada manual, identificada na interface.
+- `cep.ts`: consulta ViaCEP após completar 8 dígitos, com cancelamento de respostas antigas, timeout, nova tentativa e edição manual. Envia somente o CEP. Mantém número e complemento e evita substituir alterações feitas durante a consulta. O acesso real ao ViaCEP foi bloqueado pela rede do ambiente; os fluxos de sucesso, indisponibilidade, CEP não encontrado e resposta atrasada foram verificados com respostas simuladas no navegador.
+- `storage.ts`: persistência IndexedDB de cadastro e anexos. Os dados ficam somente no navegador/origem atual, sem conta autenticada, segregação entre escritórios, backup ou sincronização. Não utilize dados reais de clientes antes do backend. Limpar dados do navegador remove os registros. Não há armazenamento de senhas ou certificados.
+
+Salvar rascunho exige CNPJ válido e razão social. Campos opcionais preenchidos também são validados. Concluir exige endereço, e-mail, atividade principal, enquadramento definido, responsável, início do atendimento, primeira competência e áreas atendidas. Há bloqueio de CNPJ duplicado na lista, vigências sobrepostas e participação total acima de 100%. Filiais precisam ter a mesma raiz da matriz. A configuração tributária é cadastral e não executa apuração ou determina obrigações automaticamente.
+
+Anexos: PDF/PNG/JPG, até 10 MB por arquivo e 30 MB por cadastro, com download local e remoção após confirmação. O histórico é local e registra salvamentos/seções alteradas; não equivale a auditoria autenticada ou versionamento contábil. Alterações não salvas exigem confirmação ao sair. Recolher a sidebar preserva o formulário.
+
+Validação: `npm test` executa os testes das máscaras e regras. `npm run test:e2e` executa testes Chromium com Playwright (instale via `npx playwright install chromium`, ou forneça `CHROMIUM_PATH`; neste ambiente utiliza `/usr/bin/chromium`). `npm run typecheck` verifica os componentes tipados; `npm run export:preview` gera o build e HTML independente atualizado. O CEP requer internet mesmo no HTML independente.
