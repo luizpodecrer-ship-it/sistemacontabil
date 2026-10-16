@@ -1,0 +1,2 @@
+# Bundled third-party template literals may contain significant trailing whitespace.
+Nexo-previa.html -whitespace

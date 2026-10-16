@@ -17,7 +17,9 @@ export default defineConfig({
     screenshot: "only-on-failure",
   },
   webServer: {
-    command: "npm run dev -- --port 5174 --strictPort",
+    command: process.env.NEXO_TEST_PREVIEW
+      ? "npm run preview -- --port 5174 --strictPort"
+      : "npm run dev -- --port 5174 --strictPort",
     url: "http://127.0.0.1:5174",
     reuseExistingServer: !process.env.CI,
   },

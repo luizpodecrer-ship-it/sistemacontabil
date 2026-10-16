@@ -1,3 +1,4 @@
+import { cloudConfigured } from "../../backend/client";
 import { createRoot, type Root } from "react-dom/client";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -439,7 +440,7 @@ function CompanyApp() {
       setEditing(record);
       setDirty(false);
       setNotice(
-        `${complete ? "Cadastro concluído" : "Rascunho salvo"} neste navegador.`,
+        `${complete ? "Cadastro concluído" : "Rascunho salvo"} ${cloudConfigured ? "no escritório em nuvem" : "neste navegador"}.`,
       );
     } catch (e) {
       setNotice(
@@ -627,9 +628,10 @@ function CompanyApp() {
     );
   const banner = (
     <div className="rounded-xl border border-amber-200 bg-amber-50/70 px-4 py-3 text-xs text-amber-900 leading-relaxed mb-6">
-      <strong>Cadastro em validação.</strong> Dados e anexos ficam somente neste
-      navegador, sem compartilhamento ou backup no servidor. Use dados de teste.
-      O CEP consulta o ViaCEP; demais dados não são transmitidos.
+      <strong>Cadastro em validação.</strong>{" "}
+      {cloudConfigured
+        ? "Dados e anexos vinculados ao escritório em nuvem autenticado. Use dados de teste até a homologação."
+        : "Dados e anexos ficam somente neste navegador, sem compartilhamento ou backup no servidor. Use dados de teste. O CEP consulta o ViaCEP; demais dados não são transmitidos."}
     </div>
   );
   if (!editing) {

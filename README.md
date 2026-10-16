@@ -55,3 +55,13 @@ Salvar rascunho exige CNPJ válido e razão social. Campos opcionais preenchidos
 Anexos: PDF/PNG/JPG, até 10 MB por arquivo e 30 MB por cadastro, com download local e remoção após confirmação. O histórico é local e registra salvamentos/seções alteradas; não equivale a auditoria autenticada ou versionamento contábil. Alterações não salvas exigem confirmação ao sair. Recolher a sidebar preserva o formulário.
 
 Validação: `npm test` executa os testes das máscaras e regras. `npm run test:e2e` executa testes Chromium com Playwright (instale via `npx playwright install chromium`, ou forneça `CHROMIUM_PATH`; neste ambiente utiliza `/usr/bin/chromium`). `npm run typecheck` verifica os componentes tipados; `npm run export:preview` gera o build e HTML independente atualizado. O CEP requer internet mesmo no HTML independente.
+
+## Operação integrada e cobertura
+
+A navegação agora inclui 35 páginas operacionais. Dashboard e indicadores utilizam registros persistidos, sem números fictícios. Empresa e competência são contexto comum dos módulos; financeiro próprio e financeiro dos clientes são separados.
+
+Fluxos implementados: tarefas e obrigações com evidência; documentos com original, hash e aprovação; diário, contas, balancete e estorno; revisão/fechamento/reabertura; NF-e XML e OFX locais; contratos e cobranças idempotentes; patrimônio e depreciação linear; pessoal e eventos manuais; ajustes fiscais e simulações; atendimento com respostas; conteúdo, convenções, benefícios, materiais de treinamento, prévias internas de portais, auditoria operacional e backup/restauração local em instalação vazia.
+
+**A implementação não representa cobertura integral dos módulos contábeis ou operação pronta para produção.** A matriz detalhada de funcionalidades implementadas e pendentes está em [docs/COBERTURA.md](docs/COBERTURA.md). Transmissões oficiais, cálculos legais completos, equipe com permissões e portais autenticados externos dependem de desenvolvimento e validação adicionais.
+
+Modo Supabase opcional: consulte [docs/CONFIGURAR_NUVEM.md](docs/CONFIGURAR_NUVEM.md), `.env.example` e `supabase/migrations/001_workspace.sql`. Sem as duas variáveis públicas, o sistema continua local. Nunca inclua chaves secretas em variáveis VITE. A migração SQL é testada em PostgreSQL embarcado; autenticação, armazenamento e políticas devem ser homologados também no Supabase real antes de ativar dados de clientes.

@@ -1,3 +1,5 @@
+import { cloudConfigured } from "../../backend/client";
+import { cloudCompanies, cloudSaveCompany } from "../../backend/repository";
 import type { Company } from "./model";
 const database = "nexo-companies-v1";
 export async function withStore<T>(
@@ -56,6 +58,10 @@ export async function withStore<T>(
   });
 }
 export const listCompanies = () =>
-  withStore<Company[]>("readonly", (s) => s.getAll());
+  cloudConfigured
+    ? cloudCompanies()
+    : withStore<Company[]>("readonly", (s) => s.getAll());
 export const saveCompany = (company: Company) =>
-  withStore("readwrite", (s) => s.put(company));
+  cloudConfigured
+    ? cloudSaveCompany(company)
+    : withStore("readwrite", (s) => s.put(company));
