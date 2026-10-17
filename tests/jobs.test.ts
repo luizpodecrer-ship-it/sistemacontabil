@@ -6,6 +6,10 @@ import {
   cboMetadata,
   searchCbo,
   newJob,
+  migrateCompanyJobs,
+  availableJobs,
+  segmentForCnae,
+  employeeJobError,
   saveJob,
   validateJob,
 } from "../src/features/jobs/model";
@@ -23,9 +27,9 @@ test("CBO: catálogo completo da cópia, códigos únicos, pesquisa por código 
   assert.ok(cboByCode.has("010110"));
   assert.equal(searchCbo("nao existe ocupacao assim").length, 0);
 });
-test("Cargos: código por empresa, CBO obrigatório, isolamento, concorrência e histórico válido", () => {
+test("Cargos: catálogo compartilhado, código único, CBO obrigatório e concorrência", () => {
   const data = initialData(),
-    job = newJob(data, "empresa-a");
+    job = newJob(data);
   job.values.title = "Operador";
   job.values.cbo = "715125";
   assert.deepEqual(validateJob(job, data), {});
@@ -34,14 +38,14 @@ test("Cargos: código por empresa, CBO obrigatório, isolamento, concorrência e
     data.items[0].values.cboTitle,
     "Operador de máquinas de construção civil e mineração",
   );
-  assert.equal(newJob(data, "empresa-a").values.code, "2");
-  assert.equal(newJob(data, "empresa-b").values.code, "1");
-  const duplicate = newJob(data, "empresa-a");
+  assert.equal(newJob(data).values.code, "2");
+  assert.equal(newJob(data).values.code, "2");
+  const duplicate = newJob(data);
   duplicate.values = { ...job.values };
   assert.ok(validateJob(duplicate, data).code);
   const wrong = structuredClone(data.items[0]);
   wrong.companyId = "empresa-b";
-  assert.throws(() => saveJob(data, wrong), /contexto/);
+  assert.throws(() => saveJob(data, wrong), /compartilhado/);
   const stale = structuredClone(data.items[0]);
   stale.updatedAt = "2000-01-01";
   assert.throws(() => saveJob(data, stale), /outra aba/);
@@ -77,5 +81,70 @@ test("Atualização CBO: CSV oficial UTF-8/Latin-1, títulos com aspas e duplici
   assert.throws(
     () => parseCboCsv(Buffer.from("CODIGO;TITULO\n517405;X\n517405;Y\n")),
     /duplicado/,
+  );
+});
+
+test("Catálogo: migração preserva cargos e resolve códigos repetidos sem excluir registros", () => {
+  const data = initialData();
+  const first = newJob(data);
+  first.companyId = "empresa-a";
+  first.values.title = "Cargo A";
+  first.values.cbo = "252105";
+  const second = structuredClone(first);
+  second.id = "segundo";
+  second.companyId = "empresa-b";
+  data.items.push(first, second);
+  migrateCompanyJobs(data);
+  assert.equal(data.items.length, 2);
+  assert.ok(data.items.every((j) => j.companyId === ""));
+  assert.equal(new Set(data.items.map((j) => j.values.code)).size, 2);
+  assert.equal(data.items[1].id, "segundo");
+  assert.equal(data.items[1].values.originalCompanyCode, "1");
+  assert.equal(data.items[1].values.sourceCompanyId, "empresa-b");
+  const snapshot = JSON.stringify(data);
+  migrateCompanyJobs(data);
+  assert.equal(JSON.stringify(data), snapshot);
+});
+test("Segmentos sugerem cargos sem restringir acesso aos demais; vínculos preservam histórico", () => {
+  const data = initialData();
+  const job = newJob(data);
+  job.values.title = "Operador";
+  job.values.cbo = "715125";
+  job.values.segments = '["F"]';
+  saveJob(data, job);
+  const stored = data.items[0];
+  assert.equal(segmentForCnae("4120-4/00"), "F");
+  assert.equal(segmentForCnae("4711-3/02"), "G");
+  assert.equal(segmentForCnae("123"), undefined);
+  assert.equal(availableJobs(data.items, ["G"]).length, 0);
+  assert.equal(availableJobs(data.items, ["F"]).length, 1);
+  assert.equal(availableJobs(data.items).length, 1);
+  const employee = {
+    ...structuredClone(stored),
+    id: "emp",
+    module: "employees",
+    companyId: "empresa-a",
+    values: { roleId: stored.id, role: "Operador", cbo: "715125" },
+  };
+  assert.equal(employeeJobError(employee, data.items, false), "");
+  assert.ok(
+    employeeJobError(
+      { ...employee, values: { ...employee.values, cbo: "252105" } },
+      data.items,
+      false,
+    ),
+  );
+  const old = structuredClone(employee);
+  data.items.push(old);
+  stored.values.status = "Inativo";
+  assert.equal(employeeJobError(employee, data.items, true), "");
+  assert.equal(availableJobs(data.items).length, 0);
+  assert.ok(employeeJobError({ ...employee, id: "new" }, data.items, false));
+  assert.ok(
+    employeeJobError(
+      { ...employee, id: "new", values: { role: "Livre", cbo: "715125" } },
+      data.items,
+      true,
+    ),
   );
 });

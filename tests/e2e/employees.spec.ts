@@ -164,6 +164,55 @@ test("Novo cadastro valida conclusão e permanece responsivo, sem buscar carteir
   });
   await enter(page);
   await createCompany(page, "Empresa Teste", "11222333000181");
+  await page.evaluate(async () => {
+    await new Promise<void>((resolve, reject) => {
+      const r = indexedDB.open("nexo-workspace-v1", 1);
+      r.onupgradeneeded = () => r.result.createObjectStore("state");
+      r.onsuccess = () => {
+        const db = r.result;
+        const tx = db.transaction("state", "readwrite");
+        const store = tx.objectStore("state");
+        const get = store.get("current");
+        get.onsuccess = () => {
+          const data = get.result || {
+            schema: 1,
+            revision: 0,
+            items: [],
+            entries: [],
+            accounts: [],
+            closings: [],
+            audit: [],
+          };
+          data.items.push({
+            id: "role-analyst",
+            module: "jobs",
+            companyId: "",
+            period: "",
+            createdAt: "2026-01-01",
+            updatedAt: "2026-01-01",
+            values: {
+              code: "1",
+              title: "Analista de teste",
+              cbo: "252105",
+              cboTitle: "Administrador",
+              status: "Ativo",
+              segments: "[]",
+              salaries: "[]",
+              requirements: "[]",
+            },
+          });
+          store.put(data, "current");
+        };
+        tx.oncomplete = () => {
+          db.close();
+          resolve();
+        };
+        tx.onerror = () => reject(tx.error);
+      };
+      r.onerror = () => reject(r.error);
+    });
+  });
+
   await page.getByRole("tab", { name: "Colaboradores", exact: true }).click();
   await page
     .getByRole("button", { name: "Novo colaborador", exact: true })
@@ -182,7 +231,7 @@ test("Novo cadastro valida conclusão e permanece responsivo, sem buscar carteir
     .getByLabel("Data de nascimento", { exact: true })
     .fill("1990-01-01");
   await page.getByLabel("Admissão", { exact: true }).fill("2025-01-15");
-  await page.getByLabel("Cargo", { exact: true }).fill("Analista de teste");
+  await page.getByLabel("Cargo", { exact: true }).selectOption("role-analyst");
   await page
     .getByLabel("Tipo de vínculo", { exact: true })
     .selectOption("Empregado");
@@ -199,7 +248,11 @@ test("Novo cadastro valida conclusão e permanece responsivo, sem buscar carteir
   await page
     .getByLabel("Vigência do salário", { exact: true })
     .fill("2025-01-15");
-  await page.getByLabel("CBO", { exact: true }).fill("252105");
+  await expect(page.getByLabel("CBO", { exact: true })).toHaveValue("2521-05");
+  await expect(page.getByLabel("CBO", { exact: true })).toHaveAttribute(
+    "readonly",
+    "",
+  );
   await page.getByLabel("Matrícula eSocial", { exact: true }).fill("EMP-002");
   await page
     .getByLabel("Código da categoria eSocial", { exact: true })

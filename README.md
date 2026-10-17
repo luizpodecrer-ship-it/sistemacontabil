@@ -85,4 +85,4 @@ A aba **Colaboradores**, ao lado de Atendimento e pessoal, compartilha o cadastr
 
 ## Cargos
 
-Em **Visão geral → Cargos**, selecione a empresa para cadastrar e editar cargos vinculados à CBO, requisitos e referências salariais. A consulta inclui 2.693 ocupações de uma cópia pública de agosto de 2023, com busca, filtros e paginação. Não é sincronização oficial em tempo real. Origem, limites e atualização por CSV oficial: [CARGOS_E_CBO.md](docs/CARGOS_E_CBO.md).
+No menu lateral, **Cargos** fica abaixo de **Visão geral**. Cadastre cargos compartilhados entre as empresas do escritório, com CBO, segmentos, requisitos e referências salariais. Ao cadastrar um colaborador, consulte esse catálogo pelos segmentos da empresa e preencha o CBO automaticamente. A consulta inclui 2.693 ocupações de uma cópia pública de agosto de 2023, com busca, filtros e paginação. Não é sincronização oficial em tempo real. Origem, limites e atualização por CSV oficial: [CARGOS_E_CBO.md](docs/CARGOS_E_CBO.md).

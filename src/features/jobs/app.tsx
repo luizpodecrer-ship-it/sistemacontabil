@@ -13,6 +13,7 @@ import {
   saveJob,
   validateJob,
   type Salary,
+  segments,
 } from "./model";
 const button =
   "inline-flex items-center justify-center gap-2 rounded-lg border border-neutral-300 bg-white px-4 py-2.5 text-xs font-semibold hover:bg-neutral-50 disabled:opacity-40";
@@ -54,12 +55,10 @@ const fields: FieldSpec[] = [
 ];
 export function Jobs({
   data,
-  companyId,
   onSaved,
   onDirtyChange,
 }: {
   data: Data;
-  companyId: string;
   onSaved: (data: Data) => void;
   onDirtyChange: (dirty: boolean) => void;
 }) {
@@ -118,7 +117,6 @@ export function Jobs({
     .filter(
       (i) =>
         i.module === "jobs" &&
-        i.companyId === companyId &&
         (status === "Todos" || i.values.status === status) &&
         normalize(
           [
@@ -213,6 +211,51 @@ export function Jobs({
                   />
                 ))}
               </div>
+            </fieldset>
+            <fieldset className="rounded-2xl border border-neutral-200 bg-white p-5">
+              <legend className="px-2 text-sm font-semibold">
+                Segmentos de aplicação
+              </legend>
+              <p className="mb-4 text-xs text-neutral-500">
+                Marque os segmentos em que este cargo será sugerido. Sem
+                seleção, o cargo ficará disponível para todos os segmentos.
+              </p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {segments.map((segment) => (
+                  <label
+                    key={segment.code}
+                    className="flex items-center gap-2 text-xs"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={rows<string>(draft.values.segments).includes(
+                        segment.code,
+                      )}
+                      onChange={(e) =>
+                        update(
+                          "segments",
+                          JSON.stringify(
+                            e.target.checked
+                              ? [
+                                  ...rows<string>(draft.values.segments),
+                                  segment.code,
+                                ]
+                              : rows<string>(draft.values.segments).filter(
+                                  (s) => s !== segment.code,
+                                ),
+                          ),
+                        )
+                      }
+                    />
+                    {segment.label}
+                  </label>
+                ))}
+              </div>
+              {errors.segments && (
+                <p role="alert" className="mt-2 text-xs text-red-700">
+                  {errors.segments}
+                </p>
+              )}
             </fieldset>
             <details className="rounded-2xl border border-neutral-200 bg-white p-5">
               <summary className="cursor-pointer text-sm font-semibold">
@@ -419,22 +462,21 @@ export function Jobs({
     );
   }
   return (
-    <section aria-label="Cargos da empresa">
+    <section aria-label="Catálogo de cargos">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="flex items-center gap-2 text-lg font-semibold">
             <BriefcaseBusiness className="h-5 w-5" /> Cargos
           </h2>
           <p className="mt-1 text-xs text-neutral-500">
-            Cadastre cargos e suas ocupações CBO para a empresa selecionada.
+            Cadastre uma vez e utilize os cargos nas empresas do escritório.
           </p>
         </div>
         <button
           type="button"
-          disabled={!companyId}
           className={button}
           onClick={() => {
-            setDraft(newJob(data, companyId));
+            setDraft(newJob(data));
             setChanged(false);
             setErrors({});
             setMessage("");
@@ -443,11 +485,7 @@ export function Jobs({
           <Plus className="h-4 w-4" /> Novo cargo
         </button>
       </div>
-      {!companyId ? (
-        <p className="rounded-xl border border-neutral-200 bg-white p-5 text-sm text-neutral-500">
-          Selecione uma empresa acima para consultar e cadastrar seus cargos.
-        </p>
-      ) : (
+      {
         <>
           <div className="mb-4 flex flex-wrap gap-3">
             <input
@@ -535,7 +573,7 @@ export function Jobs({
             )}
           </div>
         </>
-      )}
+      }
       {message && (
         <p
           role="status"

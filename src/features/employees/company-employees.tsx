@@ -1,3 +1,5 @@
+import { EmployeeJobPicker } from "../jobs/employee-picker";
+import { loadJobsData } from "../jobs/storage";
 import { Fragment, useEffect, useRef, useState } from "react";
 import {
   Plus,
@@ -12,7 +14,7 @@ import { FormField, type FieldSpec } from "@/components/ui/form-field";
 import { digits, formatCpf } from "@/lib/formats";
 import { type Company, type Values } from "../companies/model";
 import { lookupCep } from "../companies/cep";
-import { loadData, mutateData } from "../workspace/storage";
+import { mutateData } from "../workspace/storage";
 import { type Item } from "../workspace/model";
 import { blocks, repeating, sectionRepeats } from "./fields";
 import {
@@ -47,6 +49,7 @@ export function CompanyEmployees({
   onDirtyChange: (value: boolean) => void;
   onEditingChange: (value: boolean) => void;
 }) {
+  const [jobs, setJobs] = useState<Item[]>([]);
   const [items, setItems] = useState<Item[]>([]),
     [draft, setDraft] = useState<Item | null>(null),
     [errors, setErrors] = useState<Values>({}),
@@ -64,14 +67,18 @@ export function CompanyEmployees({
     initialEmployee = useRef("");
   useEffect(() => {
     let active = true;
-    loadData()
+    loadJobsData()
       .then((data) => {
-        if (active)
+        if (active) {
+          setJobs(
+            data.items.filter((i) => i.module === "jobs" && !i.companyId),
+          );
           setItems(
             data.items.filter(
               (i) => i.module === "employees" && i.companyId === company.id,
             ),
           );
+        }
       })
       .catch((e) => {
         if (active) setLoadError(e.message);
@@ -182,7 +189,7 @@ export function CompanyEmployees({
   }
   async function save(complete: boolean) {
     if (!draft) return;
-    const found = validateEmployee(draft, items, complete);
+    const found = validateEmployee(draft, [...items, ...jobs], complete);
     setErrors(found);
     if (Object.keys(found).length) {
       setExpanded((old) => [
@@ -204,6 +211,7 @@ export function CompanyEmployees({
           (i) => i.module === "employees" && i.companyId === company.id,
         ),
       );
+      setJobs(data.items.filter((i) => i.module === "jobs" && !i.companyId));
       setDraft(saved!);
       setDirty(false);
       setNotice(
@@ -237,6 +245,46 @@ export function CompanyEmployees({
       ].includes(spec.key)
     )
       spec = { ...spec, required: true };
+    if (!prefix && spec.key === "cbo") return null;
+    if (!prefix && spec.key === "role")
+      return (
+        <EmployeeJobPicker
+          key="role-picker"
+          company={company}
+          jobs={jobs}
+          values={values}
+          error={errors.role || errors.cbo}
+          onRefresh={async () => {
+            try {
+              const state = await loadJobsData();
+              setJobs(
+                state.items.filter((i) => i.module === "jobs" && !i.companyId),
+              );
+            } catch (e) {
+              setNotice((e as Error).message);
+            }
+          }}
+          onSelect={(job) => {
+            setDraft((current) =>
+              current
+                ? {
+                    ...current,
+                    values: {
+                      ...current.values,
+                      roleId: job?.id || "",
+                      role: job?.values.title || "",
+                      roleCode: job?.values.code || "",
+                      cbo: job?.values.cbo || "",
+                      roleCboVersion: job?.values.cboVersion || "",
+                    },
+                  }
+                : current,
+            );
+            setDirty(true);
+            setErrors((old) => ({ ...old, role: "", cbo: "" }));
+          }}
+        />
+      );
     if (!prefix && spec.key === "establishment")
       spec = {
         ...spec,

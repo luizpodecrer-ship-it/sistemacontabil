@@ -1,3 +1,4 @@
+import { loadJobsData } from "../jobs/storage";
 import { Jobs } from "../jobs/app";
 import { CompanyEmployees } from "../employees/company-employees";
 import { cloudConfigured } from "../../backend/client";
@@ -124,7 +125,6 @@ export function Workspace({ moduleId }: { moduleId: string }) {
       return today().slice(0, 7);
     }
   });
-  const [homeTab, setHomeTab] = useState("overview");
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("Todos");
   const [editor, setEditor] = useState<Item | null>(null);
@@ -141,7 +141,7 @@ export function Workspace({ moduleId }: { moduleId: string }) {
   const def = modules.find((m) => m.id === moduleId);
   useEffect(() => {
     let active = true;
-    Promise.all([loadData(), listCompanies()])
+    Promise.all([loadJobsData(), listCompanies()])
       .then(([state, list]) => {
         if (active) {
           setData(state);
@@ -1111,6 +1111,7 @@ export function Workspace({ moduleId }: { moduleId: string }) {
     );
   const names: Record<string, string> = {
     home: "Visão geral",
+    jobs: "Cargos",
     chart: "Indicadores e relatórios",
     accounting: "Contabilidade",
     accounts: "Plano de contas",
@@ -1132,7 +1133,9 @@ export function Workspace({ moduleId }: { moduleId: string }) {
           </h1>
           <p className="text-sm text-neutral-500 mt-2">
             {def?.description ||
-              "Dados vinculados à empresa, competência e origem."}
+              (moduleId === "jobs"
+                ? "Catálogo de cargos compartilhado entre as empresas do escritório."
+                : "Dados vinculados à empresa, competência e origem.")}
           </p>
         </div>
         {def && (
@@ -1153,48 +1156,50 @@ export function Workspace({ moduleId }: { moduleId: string }) {
         Não use dados reais de clientes. Integrações oficiais e cálculos legais
         não estão ativos.
       </div>
-      <div className="grid sm:grid-cols-[1fr_180px_auto] gap-4 items-end rounded-xl border border-neutral-200 p-4 bg-white mb-6">
-        <label className="text-xs font-medium">
-          Empresa
-          <select
-            aria-label="Empresa em contexto"
-            className={`${input} mt-2`}
-            value={companyId}
-            onChange={(e) => {
-              if (!canLeaveWorkspace()) return;
-              setCompanyId(e.target.value);
+      {moduleId !== "jobs" && (
+        <div className="grid sm:grid-cols-[1fr_180px_auto] gap-4 items-end rounded-xl border border-neutral-200 p-4 bg-white mb-6">
+          <label className="text-xs font-medium">
+            Empresa
+            <select
+              aria-label="Empresa em contexto"
+              className={`${input} mt-2`}
+              value={companyId}
+              onChange={(e) => {
+                if (!canLeaveWorkspace()) return;
+                setCompanyId(e.target.value);
+                setEditor(null);
+                setEntryEditor(null);
+                setChanged(false);
+                setNotice("");
+              }}
+            >
+              <option value="">Selecione uma empresa</option>
+              {companies.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.values.tradeName || c.values.legalName}
+                </option>
+              ))}
+            </select>
+          </label>
+          <FormField
+            spec={{ key: "contextPeriod", label: "Competência", type: "month" }}
+            value={period}
+            onChange={(v) => {
+              if (!/^\d{4}-\d{2}$/.test(v) || !canLeaveWorkspace()) return;
+              setPeriod(v);
               setEditor(null);
               setEntryEditor(null);
               setChanged(false);
-              setNotice("");
             }}
+          />
+          <span
+            className={`text-xs rounded-lg px-3 py-3 mb-1 ${closing?.state === "Fechado" ? "bg-emerald-50 text-emerald-800" : "bg-neutral-50 text-neutral-500"}`}
           >
-            <option value="">Selecione uma empresa</option>
-            {companies.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.values.tradeName || c.values.legalName}
-              </option>
-            ))}
-          </select>
-        </label>
-        <FormField
-          spec={{ key: "contextPeriod", label: "Competência", type: "month" }}
-          value={period}
-          onChange={(v) => {
-            if (!/^\d{4}-\d{2}$/.test(v) || !canLeaveWorkspace()) return;
-            setPeriod(v);
-            setEditor(null);
-            setEntryEditor(null);
-            setChanged(false);
-          }}
-        />
-        <span
-          className={`text-xs rounded-lg px-3 py-3 mb-1 ${closing?.state === "Fechado" ? "bg-emerald-50 text-emerald-800" : "bg-neutral-50 text-neutral-500"}`}
-        >
-          {closing?.state || "Aberto"}
-        </span>
-      </div>
-      {!companies.length && (
+            {closing?.state || "Aberto"}
+          </span>
+        </div>
+      )}
+      {moduleId !== "jobs" && !companies.length && (
         <p className="mb-6 text-sm text-neutral-500">
           Cadastre uma empresa em Empresas para iniciar os módulos operacionais.
         </p>
@@ -2134,54 +2139,9 @@ export function Workspace({ moduleId }: { moduleId: string }) {
           )}
         </Section>
       )}
-      {moduleId === "home" && (
-        <>
-          <div
-            role="tablist"
-            aria-label="Seções da visão geral"
-            className="mb-6 flex gap-2 border-b border-neutral-200"
-          >
-            {[
-              ["overview", "Resumo"],
-              ["jobs", "Cargos"],
-            ].map(([id, label]) => (
-              <button
-                type="button"
-                role="tab"
-                key={id}
-                aria-selected={homeTab === id}
-                aria-controls={`home-panel-${id}`}
-                id={`home-tab-${id}`}
-                className={`px-4 py-3 text-sm ${homeTab === id ? "border-b-2 border-neutral-900 font-semibold text-neutral-900" : "text-neutral-500"}`}
-                onClick={() => {
-                  if (homeTab !== id && canLeaveWorkspace()) {
-                    setHomeTab(id);
-                    setChanged(false);
-                  }
-                }}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-          <div
-            role="tabpanel"
-            id={`home-panel-${homeTab}`}
-            aria-labelledby={`home-tab-${homeTab}`}
-          >
-            {homeTab === "overview" ? (
-              home()
-            ) : (
-              <Jobs
-                key={companyId}
-                data={data}
-                companyId={companyId}
-                onSaved={setData}
-                onDirtyChange={setChanged}
-              />
-            )}
-          </div>
-        </>
+      {moduleId === "home" && home()}
+      {moduleId === "jobs" && (
+        <Jobs data={data} onSaved={setData} onDirtyChange={setChanged} />
       )}
       {moduleId === "chart" && reports()}
       {moduleId === "accounting" && accounting()}

@@ -1,3 +1,4 @@
+import { employeeJobError } from "../jobs/model";
 import { digits, formatCpf, validCpf } from "@/lib/formats";
 import { validateField, type Values } from "../companies/model";
 import {
@@ -296,6 +297,8 @@ export function validateEmployee(
       }
     }
   }
+  const jobError = employeeJobError(item, all, complete);
+  if (jobError) errors.role = jobError;
   return errors;
 }
 function validDate(value: string) {
