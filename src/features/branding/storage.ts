@@ -68,9 +68,9 @@ export async function saveBrand(
   }
   if (platform) {
     const capability = await cloud!.rpc("platform_branding_version");
-    if (capability.error || capability.data !== 3)
+    if (capability.error || capability.data !== 4)
       throw new Error(
-        "A personalização do login requer a atualização 006 do banco. Nenhuma alteração foi enviada.",
+        "A identidade do sistema requer a atualização 007 do banco. Nenhuma alteração foi enviada.",
       );
   }
   const { error } = await cloud!.rpc(
@@ -90,6 +90,10 @@ export async function saveBrand(
   else officeRevision++;
 }
 export function applyPlatform(brand: PlatformBrand) {
+  document.documentElement.style.setProperty(
+    "--menu-logo-size",
+    `${brand.menuLogoSize || defaultPlatform.menuLogoSize}px`,
+  );
   document.title = `${brand.name} — Gestão contábil`;
   document.documentElement.style.setProperty("--platform-accent", brand.color);
   let favicon = document.querySelector<HTMLLinkElement>('link[rel="icon"]');

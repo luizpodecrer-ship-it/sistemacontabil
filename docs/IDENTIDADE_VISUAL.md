@@ -63,6 +63,12 @@ A prévia acompanha os ajustes antes de salvar. Os limites de tamanho de exibiç
 
 Os links “Ver Dot Pattern” e “Ver Dock” foram removidos da interface; os componentes de demonstração não foram apagados. A personalização altera a apresentação da entrada, preservando a autenticação e as mensagens obrigatórias da demonstração.
 
-Instalações com Supabase precisam aplicar também **`supabase/migrations/005_login_branding.sql`**, após a 004. A migração mantém a permissão administrativa, valida os novos textos/cores/logos e preserva campos de login quando um cliente anterior salva apenas a marca principal. A interface confere a versão suportada antes de enviar uma alteração global; a versão atual requer também a atualização 006 descrita abaixo.
+Instalações com Supabase precisam aplicar também **`supabase/migrations/005_login_branding.sql`**, após a 004. A migração mantém a permissão administrativa, valida os novos textos/cores/logos e preserva campos de login quando um cliente anterior salva apenas a marca principal. A interface confere a versão suportada antes de enviar uma alteração global; a versão atual requer também as atualizações 006 e 007 descritas abaixo.
 
-Para os controles independentes, aplique **`supabase/migrations/006_login_branding_sides.sql`** depois da 005. A migração valida tamanhos, alinhamentos, cores e ícone quadrado, preservando os campos omitidos por clientes anteriores. A interface exige a versão 3 da função de configuração antes de salvar no banco. Sem Supabase configurado, estas opções continuam salvas apenas no navegador.
+Para os controles independentes, aplique **`supabase/migrations/006_login_branding_sides.sql`** depois da 005. A migração valida tamanhos, alinhamentos, cores e ícone quadrado, preservando os campos omitidos por clientes anteriores. A 006 oferece a versão 3 da função; a interface atual exige a versão 4, disponível na atualização 007. Sem Supabase configurado, estas opções continuam salvas apenas no navegador.
+
+## Tamanho do logo no menu
+
+Em **Identidade do sistema → Tamanho do logo no menu**, os botões +/− e a barra ajustam a altura entre 32 e 112 px. A prévia é imediata; o menu real usa o tamanho após salvar a identidade. O padrão é 64 px, inclusive em cadastros antigos. A imagem mantém a proporção e respeita a largura disponível. O ícone recolhido e os dois elementos do login mantêm suas próprias configurações.
+
+Para persistir o novo campo em Supabase, aplique `supabase/migrations/007_menu_logo_size.sql` após a 006. Ela preserva os ajustes anteriores, valida o limite no servidor e mantém administração e controle de versão concorrente. A interface verifica a versão 4 antes do envio para impedir que um banco antigo descarte o campo silenciosamente. A migração foi testada em PostgreSQL local com PGlite; sua aplicação em um projeto Supabase existente é uma etapa separada. No ambiente local de testes, o ajuste é salvo no navegador.

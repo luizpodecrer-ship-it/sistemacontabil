@@ -222,3 +222,6 @@ textarea.form-control { min-height:96px; }
  .record-toolbar > .btn { margin-left:0; }
  .compact-filter-grid > input, .compact-filter-grid > .system-select, .compact-filter-grid > .system-select:first-of-type { width:100%; }
 }
+
+/* Sidebar logo height is adjustable independently from login and collapsed icon. */
+.rail [data-platform-logo] { height:var(--menu-logo-size,64px); min-height:32px; }

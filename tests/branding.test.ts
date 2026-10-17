@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   defaultOffice,
+  defaultPlatform,
   normalizeBrand,
   validateDimensions,
   ink,
@@ -28,4 +29,18 @@ test("Cor branca tem contraste e identidade salva não aceita SVG ou cor injetad
   );
   assert.equal(value.logo, "");
   assert.equal(value.color, defaultOffice.color);
+});
+
+test("Tamanho do logo do menu aceita limites e mantém padrão em cadastros antigos", () => {
+  assert.equal(normalizeBrand({}, defaultPlatform).menuLogoSize, "64");
+  for (const value of ["32", "96", "112"])
+    assert.equal(
+      normalizeBrand({ menuLogoSize: value }, defaultPlatform).menuLogoSize,
+      value,
+    );
+  for (const value of ["0", "113", "NaN", "64px"])
+    assert.equal(
+      normalizeBrand({ menuLogoSize: value }, defaultPlatform).menuLogoSize,
+      "64",
+    );
 });

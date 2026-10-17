@@ -13,6 +13,7 @@ test("Branding: administração global protegida no servidor, escritório isolad
     "004_branding.sql",
     "005_login_branding.sql",
     "006_login_branding_sides.sql",
+    "007_menu_logo_size.sql",
   ])
     await db.exec(
       await readFile(
@@ -128,6 +129,7 @@ test("Branding: administração global protegida no servidor, escritório isolad
     loginLogo: "",
     loginLogoFormat: "horizontal",
     loginIcon: "",
+    menuLogoSize: "88",
     loginIconSize: "72",
     loginLogoSize: "232",
     loginIconAlign: "right",
@@ -161,6 +163,8 @@ test("Branding: administração global protegida no servidor, escritório isolad
     ]),
   );
   for (const invalid of [
+    { menuLogoSize: "999" },
+    { menuLogoSize: "NaN" },
     { loginIconSize: "999" },
     { loginLogoSize: "0" },
     { loginIconAlign: "bottom" },
@@ -189,6 +193,7 @@ test("Branding: administração global protegida no servidor, escritório isolad
       "select public.get_platform_brand() as value",
     )
   ).rows[0].value.branding;
+  assert.equal(persisted.menuLogoSize, "88");
   assert.equal(persisted.loginIconSize, "72");
   assert.equal(persisted.loginLogoSize, "232");
   assert.equal(persisted.loginIconAlign, "right");

@@ -318,6 +318,85 @@ function Branding({
             </div>
           </div>
           {platform && (
+            <fieldset className="rounded-xl border border-neutral-200 p-4">
+              <legend className="px-1 text-xs font-semibold">
+                Tamanho do logo no menu
+              </legend>
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  className={button}
+                  aria-label="Diminuir logo do menu"
+                  disabled={busy || Number(system.menuLogoSize) <= 32}
+                  onClick={() =>
+                    change(
+                      "menuLogoSize",
+                      String(Math.max(32, Number(system.menuLogoSize) - 4)),
+                    )
+                  }
+                >
+                  −
+                </button>
+                <label className="min-w-0 flex-1 text-xs">
+                  Altura do logo
+                  <input
+                    aria-label="Tamanho do logo no menu"
+                    type="range"
+                    min="32"
+                    max="112"
+                    step="4"
+                    value={system.menuLogoSize}
+                    disabled={busy}
+                    onChange={(e) => change("menuLogoSize", e.target.value)}
+                    className="mt-2 block w-full accent-neutral-900"
+                  />
+                </label>
+                <button
+                  type="button"
+                  className={button}
+                  aria-label="Aumentar logo do menu"
+                  disabled={busy || Number(system.menuLogoSize) >= 112}
+                  onClick={() =>
+                    change(
+                      "menuLogoSize",
+                      String(Math.min(112, Number(system.menuLogoSize) + 4)),
+                    )
+                  }
+                >
+                  +
+                </button>
+                <output className="text-xs tabular-nums">
+                  {system.menuLogoSize} px
+                </output>
+              </div>
+              <div
+                className="mt-4 w-full max-w-[272px] rounded-xl border border-neutral-200 bg-white p-4"
+                aria-label="Prévia do logo no menu"
+              >
+                {system.logo ? (
+                  <img
+                    src={system.logo}
+                    alt="Logo do menu na prévia"
+                    className="w-full object-contain"
+                    style={{ height: `${system.menuLogoSize}px` }}
+                  />
+                ) : (
+                  <span
+                    className="flex items-center font-semibold"
+                    style={{ height: `${system.menuLogoSize}px` }}
+                  >
+                    {system.name}
+                  </span>
+                )}
+              </div>
+              <p className="mt-3 text-[11px] leading-5 text-neutral-500">
+                Ajuste de 32 a 112 px. A largura se adapta ao menu, preservando
+                a proporção. O ícone do menu recolhido e os logos do login têm
+                ajustes independentes.
+              </p>
+            </fieldset>
+          )}
+          {platform && (
             <div>
               <p className="mb-3 text-xs font-medium">Ícone do sistema</p>
               <div className="flex flex-wrap items-center gap-4">

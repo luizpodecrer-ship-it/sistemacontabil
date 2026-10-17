@@ -70,6 +70,7 @@ export const loginTexts = [
   { key: "loginFooter", label: "Texto do rodapé do painel", max: 200 },
 ] as const;
 export type PlatformBrand = LoginSettings & {
+  menuLogoSize: string;
   name: string;
   color: string;
   logo: string;
@@ -84,6 +85,7 @@ export const defaultOffice: OfficeBrand = {
   logoFormat: "square",
 };
 export const defaultPlatform: PlatformBrand = {
+  menuLogoSize: "64",
   ...defaultLogin,
   name: "Nexo",
   color: "#171717",
@@ -178,6 +180,11 @@ export function normalizeBrand<T extends OfficeBrand | PlatformBrand>(
       (!/^\d{2,3}$/.test(v) ||
         Number(v) < (key === "loginIconSize" ? 32 : 80) ||
         Number(v) > (key === "loginIconSize" ? 160 : 400))
+    )
+      continue;
+    if (
+      key === "menuLogoSize" &&
+      (!/^\d{2,3}$/.test(v) || Number(v) < 32 || Number(v) > 112)
     )
       continue;
     if (key === "name" && (!v.trim() || v.length > 80)) continue;

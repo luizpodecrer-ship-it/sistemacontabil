@@ -308,3 +308,75 @@ test("Login personalizado e ícone transparente têm fundo correto; links de dem
     ),
   ).toBe(true);
 });
+
+test("Logo do menu: tamanho ajustável, prévia, persistência e ícone independente", async ({
+  page,
+}) => {
+  await enter(page);
+  await openModule(page, "Identidade do sistema");
+  await page
+    .getByLabel("Enviar logo", { exact: true })
+    .setInputFiles(await imageFile(page, 300, 150));
+  const size = page.getByLabel("Tamanho do logo no menu", { exact: true });
+  await expect(size).toHaveValue("64");
+  await page
+    .getByRole("button", { name: "Aumentar logo do menu", exact: true })
+    .click();
+  await expect(size).toHaveValue("68");
+  await page
+    .getByRole("button", { name: "Diminuir logo do menu", exact: true })
+    .click();
+  await expect(size).toHaveValue("64");
+  await size.fill("96");
+  await expect(
+    page.getByAltText("Logo do menu na prévia", { exact: true }),
+  ).toHaveCSS("height", "96px");
+  await page
+    .getByRole("button", {
+      name: "Salvar identidade do sistema local",
+      exact: true,
+    })
+    .click();
+  const logo = page.locator(".rail [data-platform-logo]");
+  await expect(logo).toHaveCSS("height", "96px");
+  await expect(logo.locator("img")).toHaveCSS("object-fit", "contain");
+  await page
+    .getByRole("button", { name: "Recolher menu", exact: true })
+    .click();
+  await expect(logo).toBeHidden();
+  await expect(page.locator(".rail [data-platform-icon]")).toHaveCSS(
+    "height",
+    "40px",
+  );
+  await page
+    .getByRole("button", { name: "Expandir menu", exact: true })
+    .click();
+  await expect(logo).toHaveCSS("height", "96px");
+  await page.reload();
+  await enter(page);
+  await expect(page.locator(".rail [data-platform-logo]")).toHaveCSS(
+    "height",
+    "96px",
+  );
+  await openModule(page, "Identidade do sistema");
+  await expect(size).toHaveValue("96");
+  await size.fill("112");
+  await expect(
+    page.getByRole("button", { name: "Aumentar logo do menu", exact: true }),
+  ).toBeDisabled();
+  await size.fill("32");
+  await expect(
+    page.getByRole("button", { name: "Diminuir logo do menu", exact: true }),
+  ).toBeDisabled();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole("button", { name: "Abrir menu", exact: true }).click();
+  await expect(page.locator(".rail [data-platform-logo]")).toHaveCSS(
+    "height",
+    "96px",
+  );
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+});
