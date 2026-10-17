@@ -1,10 +1,10 @@
 import { cloudConfigured } from "../../backend/client";
 import { useState } from "react";
 import { listCompanies, saveCompany, withStore } from "../companies/storage";
-import { validCnpj } from "@/lib/formats";
+import { validCnpj, validCpf } from "@/lib/formats";
 import { loadData, mutateData } from "./storage";
 import { checkEntry, initialData, type Data } from "./model";
-import type { Company } from "../companies/model";
+import { normalizeCompany, type Company } from "../companies/model";
 type FileRecord = { name: string; type: string; base64: string };
 function decode(record: FileRecord): File {
   if (
@@ -53,7 +53,9 @@ export function validateBackup(value: unknown): {
       !c ||
       typeof c.id !== "string" ||
       !c.values ||
-      !validCnpj(c.values.cnpj || "") ||
+      !(c.values.personType === "Pessoa física"
+        ? validCpf(c.values.cnpj || "")
+        : validCnpj(c.values.cnpj || "")) ||
       !c.values.legalName ||
       !Array.isArray(c.attachments) ||
       !Array.isArray(c.history) ||
@@ -133,7 +135,7 @@ export function validateBackup(value: unknown): {
       typeof a?.reason !== "string"
     )
       throw new Error("Histórico inválido.");
-  return { data, companies: raw.companies };
+  return { data, companies: raw.companies.map(normalizeCompany) };
 }
 export function RestoreBackup({
   onRestored,

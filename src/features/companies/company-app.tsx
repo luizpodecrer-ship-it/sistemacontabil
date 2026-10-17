@@ -12,14 +12,36 @@ import {
   Download,
   LoaderCircle,
   MapPin,
+  Activity,
+  Landmark,
+  Users,
+  Network,
+  Handshake,
+  BriefcaseBusiness,
+  FileText,
+  History,
+  Phone,
+  Utensils,
 } from "lucide-react";
 import { FormField, type FieldSpec } from "@/components/ui/form-field";
-import { digits, cnpjKey } from "@/lib/formats";
+import { digits, cnpjKey, formatCnae, validPhone } from "@/lib/formats";
+import { CnpjLookup } from "./cnpj-lookup";
+import type { CnpjResult } from "./cnpj";
+import {
+  phoneFields,
+  personnelBase,
+  visiblePayrollFields,
+  visiblePatFields,
+  esocialFields,
+} from "./personnel";
 import { lookupCep } from "./cep";
 import { listCompanies, saveCompany } from "./storage";
 import {
   tabs,
   identity,
+  identityFields,
+  contactFields,
+  normalizeCompany,
   address,
   contacts,
   activityFields,
@@ -59,6 +81,18 @@ export function mountCompanies(container: HTMLElement) {
   root = createRoot(container);
   root.render(<CompanyApp />);
 }
+const tabIcons = [
+  Building2,
+  MapPin,
+  Activity,
+  Landmark,
+  Users,
+  Network,
+  Handshake,
+  BriefcaseBusiness,
+  FileText,
+  History,
+];
 const action =
   "btn fx-20 inline-flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-wait";
 function Grid({
@@ -105,12 +139,18 @@ function AddressFields({
   prefix?: string;
 }) {
   const cep = digits(values.cep || "");
+  const initialCep = useRef(cep);
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
   const [retry, setRetry] = useState(0);
   const latest = useRef({ values, onChange });
   latest.current = { values, onChange };
   useEffect(() => {
+    if (cep === initialCep.current && retry === 0) {
+      setLoading(false);
+      setStatus("");
+      return;
+    }
     if (cep.length !== 8) {
       setStatus("");
       setLoading(false);
@@ -207,9 +247,39 @@ function Section({
   description?: string;
   children: React.ReactNode;
 }) {
+  const Icon = /telefone|contato/i.test(title)
+    ? Phone
+    : /PAT/.test(title)
+      ? Utensils
+      : /eSocial/i.test(title)
+        ? Network
+        : /pessoal|folha/i.test(title)
+          ? BriefcaseBusiness
+          : /endereço/i.test(title)
+            ? MapPin
+            : /sócios|responsáveis/i.test(title)
+              ? Users
+              : /histórico/i.test(title)
+                ? History
+                : /atendimento/i.test(title)
+                  ? Handshake
+                  : /documentos/i.test(title)
+                    ? FileText
+                    : /atividade/i.test(title)
+                      ? Activity
+                      : /inscriç|enquadramento/i.test(title)
+                        ? Landmark
+                        : Building2;
   return (
     <section className="rounded-2xl border border-neutral-200 bg-white p-5 md:p-7 mb-5">
-      <h2 className="text-base font-semibold">{title}</h2>
+      <h2 className="text-base font-semibold flex items-center gap-2.5">
+        <Icon
+          className="h-4 w-4 text-neutral-500"
+          strokeWidth={1.6}
+          aria-hidden="true"
+        />
+        {title}
+      </h2>
       {description && (
         <p className="mt-2 text-xs text-neutral-500 leading-relaxed">
           {description}
@@ -223,6 +293,8 @@ function CompanyApp() {
   const [records, setRecords] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
+  const [lookupResult, setLookupResult] = useState<CnpjResult | null>(null);
+  const [lookupSelection, setLookupSelection] = useState<string[]>([]);
   const [editing, setEditing] = useState<Company | null>(null);
   const [tab, setTab] = useState(0);
   const [query, setQuery] = useState("");
@@ -241,7 +313,15 @@ function CompanyApp() {
   useEffect(() => {
     if (removeRow) dialogRef.current?.showModal();
   }, [removeRow]);
-  type Group = "activities" | "regimes" | "people" | "branches";
+  type Group =
+    | "activities"
+    | "regimes"
+    | "people"
+    | "branches"
+    | "phones"
+    | "payrollPeriods"
+    | "patPeriods"
+    | "esocialPeriods";
   useEffect(() => {
     let active = true;
     listCompanies()
@@ -279,6 +359,32 @@ function CompanyApp() {
       return next;
     });
   const change = (key: string, value: string) => {
+    if (
+      key === "personType" &&
+      editing &&
+      value !== editing.values.personType
+    ) {
+      if (editing.branches.length) {
+        setNotice(
+          "Remova ou transfira as filiais antes de alterar o tipo do cliente.",
+        );
+        return;
+      }
+      if (
+        editing.values.cnpj &&
+        !window.confirm(
+          "Alterar o tipo de cliente limpará a inscrição atual. Os demais dados serão preservados para conferência. Continuar?",
+        )
+      )
+        return;
+      setEditing((c) =>
+        c ? { ...c, values: { ...c.values, personType: value, cnpj: "" } } : c,
+      );
+      setLookupResult(null);
+      setErrors({});
+      setDirty(true);
+      return;
+    }
     setEditing((c) =>
       c ? { ...c, values: { ...c.values, [key]: value } } : c,
     );
@@ -324,7 +430,9 @@ function CompanyApp() {
     setErrors((old) => ({ ...old, [key]: error }));
   };
   const open = (company: Company) => {
-    setEditing(structuredClone(company));
+    setEditing(structuredClone(normalizeCompany(company)));
+    setLookupResult(null);
+    setLookupSelection([]);
     setDirty(false);
     setErrors({});
     setNotice("");
@@ -353,7 +461,18 @@ function CompanyApp() {
                       ? { type: "Pessoa física" }
                       : group === "regimes"
                         ? { mei: "Não" }
-                        : { country: "Brasil" },
+                        : group === "phones"
+                          ? {
+                              type: "Fixo",
+                              primary: c.phones.some(
+                                (p) => p.values.primary === "Sim",
+                              )
+                                ? "Não"
+                                : "Sim",
+                            }
+                          : group === "patPeriods"
+                            ? { adherent: "Não" }
+                            : { country: "Brasil" },
               },
             ],
           }
@@ -402,12 +521,21 @@ function CompanyApp() {
       const fields = Object.keys(editing.values).filter(
         (k) => editing.values[k] !== old?.values[k],
       );
-      (["activities", "regimes", "people", "branches"] as Group[]).forEach(
-        (g) => {
-          if (JSON.stringify(editing[g]) !== JSON.stringify(old?.[g] || []))
-            fields.push(g);
-        },
-      );
+      (
+        [
+          "activities",
+          "regimes",
+          "people",
+          "branches",
+          "phones",
+          "payrollPeriods",
+          "patPeriods",
+          "esocialPeriods",
+        ] as Group[]
+      ).forEach((g) => {
+        if (JSON.stringify(editing[g]) !== JSON.stringify(old?.[g] || []))
+          fields.push(g);
+      });
       if (
         editing.attachments.map((a) => a.id).join() !==
         old?.attachments.map((a) => a.id).join()
@@ -493,6 +621,9 @@ function CompanyApp() {
         )}
         {rows.map((row, index) => {
           let fields = specs;
+          if (group === "payrollPeriods")
+            fields = visiblePayrollFields(row.values);
+          if (group === "patPeriods") fields = visiblePatFields(row.values);
           if (group === "people" && row.values.type === "Pessoa jurídica")
             fields = specs.map((f) =>
               f.key === "document"
@@ -588,7 +719,15 @@ function CompanyApp() {
               ? "enquadramento"
               : group === "people"
                 ? "pessoa"
-                : "filial"}
+                : group === "phones"
+                  ? "telefone"
+                  : group === "payrollPeriods"
+                    ? "configuração da folha"
+                    : group === "patPeriods"
+                      ? "vigência PAT"
+                      : group === "esocialPeriods"
+                        ? "configuração eSocial"
+                        : "filial"}
         </button>
       </Section>
     );
@@ -678,7 +817,7 @@ function CompanyApp() {
             <input
               id="company-search"
               className="form-control !pl-10"
-              placeholder="Buscar por nome, CNPJ ou código"
+              placeholder="Buscar por nome, CPF/CNPJ ou código"
               aria-label="Buscar empresas"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -862,8 +1001,18 @@ function CompanyApp() {
               }
             }}
             onClick={() => setTab(i)}
-            className={`shrink-0 px-4 py-3 text-xs rounded-t-lg border-b-2 ${tab === i ? "text-neutral-900 border-neutral-900 bg-white font-semibold" : "border-transparent text-neutral-400 hover:text-neutral-700"}`}
+            className={`shrink-0 inline-flex items-center gap-2 px-4 py-3 text-xs rounded-t-lg border-b-2 ${tab === i ? "text-neutral-900 border-neutral-900 bg-white font-semibold" : "border-transparent text-neutral-400 hover:text-neutral-700"}`}
           >
+            {(() => {
+              const Icon = tabIcons[i];
+              return (
+                <Icon
+                  className="h-4 w-4 shrink-0"
+                  strokeWidth={1.6}
+                  aria-hidden="true"
+                />
+              );
+            })()}
             {label}
             {currentErrors.some(([k]) => errorTab(k) === i) && (
               <span className="ml-1 text-red-700">•</span>
@@ -886,9 +1035,139 @@ function CompanyApp() {
           {tab === 0 && (
             <Section
               title="Identificação da matriz"
-              description="CNPJ e razão social são suficientes para iniciar um rascunho. Demais campos com * serão exigidos para concluir."
+              description="Inscrição e nome/razão social são suficientes para iniciar um rascunho. Demais campos com * serão exigidos para concluir."
             >
-              {grid(identity)}
+              {editing.values.personType !== "Pessoa física" && (
+                <CnpjLookup
+                  key={editing.id}
+                  registration={editing.values.cnpj || ""}
+                  onResult={(result) => {
+                    if (result.cnpj !== cnpjKey(editing.values.cnpj || ""))
+                      return;
+                    setLookupResult(result);
+                    setLookupSelection([]);
+                    setEditing((c) => {
+                      if (!c || cnpjKey(c.values.cnpj || "") !== result.cnpj)
+                        return c;
+                      const values = { ...c.values };
+                      Object.entries(result.values).forEach(([k, v]) => {
+                        if (v && !values[k]?.trim()) values[k] = v;
+                      });
+                      values.lookupProvider = result.provider;
+                      values.lookupAt = result.at;
+                      values.lookupCnpj = result.cnpj;
+                      const phones = [...c.phones];
+                      for (const phone of result.phones) {
+                        if (
+                          validPhone(phone.number) &&
+                          !phones.some(
+                            (p) =>
+                              digits(p.values.number || "") ===
+                              digits(phone.number),
+                          )
+                        )
+                          phones.push({
+                            id: uid(),
+                            values: {
+                              ...phone,
+                              primary: phones.some(
+                                (p) => p.values.primary === "Sim",
+                              )
+                                ? "Não"
+                                : "Sim",
+                            },
+                          });
+                      }
+                      return {
+                        ...c,
+                        values,
+                        phones,
+                        activities: c.activities.length
+                          ? c.activities
+                          : result.activities.map((a) => ({
+                              id: uid(),
+                              values: { ...a, cnae: formatCnae(a.cnae) },
+                            })),
+                      };
+                    });
+                    setDirty(true);
+                  }}
+                />
+              )}
+              {lookupResult &&
+                lookupResult.cnpj === cnpjKey(editing.values.cnpj || "") && (
+                  <details className="mb-6 rounded-xl border border-neutral-200 p-4 text-xs">
+                    <summary className="cursor-pointer text-neutral-600">
+                      Revisar dados da consulta ·{" "}
+                      {new Date(lookupResult.at).toLocaleString("pt-BR")}
+                    </summary>
+                    <p className="text-neutral-400 mt-3 mb-4">
+                      Selecione os campos já preenchidos que deseja substituir.
+                      Nenhuma alteração é aplicada sem esta ação.
+                    </p>
+                    <div className="space-y-3">
+                      {Object.entries(lookupResult.values)
+                        .filter(
+                          ([k, v]) =>
+                            v && editing.values[k] && editing.values[k] !== v,
+                        )
+                        .map(([k, v]) => (
+                          <label key={k} className="flex gap-3 items-start">
+                            <input
+                              type="checkbox"
+                              checked={lookupSelection.includes(k)}
+                              onChange={(e) =>
+                                setLookupSelection((old) =>
+                                  e.target.checked
+                                    ? [...old, k]
+                                    : old.filter((x) => x !== k),
+                                )
+                              }
+                            />
+                            <span>
+                              <strong className="font-medium">
+                                {[...identity, ...address, ...contacts].find(
+                                  (f) => f.key === k,
+                                )?.label || k}
+                              </strong>
+                              : {editing.values[k]} → {v}
+                            </span>
+                          </label>
+                        ))}
+                    </div>
+                    <button
+                      type="button"
+                      disabled={!lookupSelection.length}
+                      className={`${action} mt-4`}
+                      onClick={() => {
+                        setEditing((c) =>
+                          c
+                            ? {
+                                ...c,
+                                values: {
+                                  ...c.values,
+                                  ...Object.fromEntries(
+                                    lookupSelection.map((k) => [
+                                      k,
+                                      lookupResult.values[k],
+                                    ]),
+                                  ),
+                                },
+                              }
+                            : c,
+                        );
+                        setLookupSelection([]);
+                        setDirty(true);
+                        setNotice(
+                          "Campos selecionados atualizados. Confira e salve o cadastro.",
+                        );
+                      }}
+                    >
+                      Aplicar campos selecionados
+                    </button>
+                  </details>
+                )}
+              {grid(identityFields(editing.values))}
             </Section>
           )}
           {tab === 1 && (
@@ -908,16 +1187,35 @@ function CompanyApp() {
                 title="Contato da empresa"
                 description="Os exemplos em cinza mostram o formato esperado; não são valores preenchidos."
               >
-                {grid(contacts)}
+                {grid(contactFields)}
               </Section>
+              {repeated("phones", "Telefones", phoneFields)}
             </>
           )}
           {tab === 2 &&
             repeated("activities", "Atividades econômicas", activityFields)}
           {tab === 3 &&
             repeated("regimes", "Enquadramentos tributários", regimeFields)}
-          {tab === 4 &&
-            repeated("people", "Sócios e representantes", peopleFields)}
+          {tab === 4 && (
+            <>
+              {repeated("people", "Sócios e representantes", peopleFields)}
+              <Section title="Responsável pelo cliente">
+                {grid([
+                  {
+                    key: "legalResponsibleId",
+                    label: "Responsável vinculado",
+                    choices: editing.people
+                      .filter((p) => p.values.name)
+                      .map((p) => ({
+                        value: p.id,
+                        label: `${p.values.name} · ${p.values.role || "Qualificação pendente"}`,
+                      })),
+                    hint: "Cadastre as pessoas acima e selecione o responsável.",
+                  },
+                ])}
+              </Section>
+            </>
+          )}
           {tab === 5 && (
             <>
               <Section
@@ -926,7 +1224,13 @@ function CompanyApp() {
               >
                 {grid(matrixFields)}
               </Section>
-              {repeated("branches", "Estabelecimentos / filiais", branchFields)}
+              {editing.values.personType === "Pessoa física" ? (
+                <p className="text-xs text-neutral-500 mb-5">
+                  Filiais são utilizadas em cadastros de pessoa jurídica.
+                </p>
+              ) : (
+                repeated("branches", "Estabelecimentos / filiais", branchFields)
+              )}
             </>
           )}
           {tab === 6 && (
@@ -980,6 +1284,41 @@ function CompanyApp() {
             </Section>
           )}
           {tab === 7 && (
+            <>
+              <Section
+                title="Configurações de pessoal"
+                description="Parâmetros cadastrais por vigência, sujeitos à revisão profissional. Não executam cálculos ou transmissões. Percentuais e datas não são preenchidos com valores das imagens de referência."
+              >
+                {grid(personnelBase)}
+              </Section>
+              {repeated(
+                "payrollPeriods",
+                "Parâmetros da folha por vigência",
+                [],
+              )}
+              {repeated(
+                "patPeriods",
+                "Programa de Alimentação do Trabalhador — PAT",
+                [],
+              )}
+              <p className="mb-5 text-xs text-neutral-500">
+                Participantes do PAT são informados com a origem do
+                levantamento. Percentuais são validados individualmente; não há
+                soma automática ou recálculo da folha.
+              </p>
+              {repeated(
+                "esocialPeriods",
+                "Implantação eSocial por vigência",
+                esocialFields,
+              )}
+              <p className="text-xs text-neutral-500 mb-5">
+                Marcos de implantação não comprovam envio ou recepção de
+                eventos. As datas de substituição de obrigações são registros
+                históricos.
+              </p>
+            </>
+          )}
+          {tab === 8 && (
             <Section
               title="Documentos cadastrais"
               description="PDF, PNG ou JPG, até 10 MB por arquivo e 30 MB por cadastro. Anexos ficam neste navegador. Não envie certificados digitais ou senhas."
@@ -1121,7 +1460,7 @@ function CompanyApp() {
               </div>
             </Section>
           )}
-          {tab === 8 && (
+          {tab === 9 && (
             <Section
               title="Histórico do cadastro"
               description="Registro local de salvamentos; não substitui auditoria de um sistema com usuários autenticados."

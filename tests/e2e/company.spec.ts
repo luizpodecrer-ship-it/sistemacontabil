@@ -1,4 +1,12 @@
 import { test, expect, type Page } from "@playwright/test";
+test.beforeEach(async ({ page }) => {
+  await page.route("https://brasilapi.com.br/api/cnpj/v1/**", (route) =>
+    route.fulfill({
+      status: 503,
+      json: { message: "Serviço indisponível no teste" },
+    }),
+  );
+});
 async function enter(page: Page) {
   await page.goto("/");
   await page.getByRole("button", { name: "Explorar a prévia" }).click();
@@ -30,15 +38,22 @@ test("Máscaras, rascunho persistido, edição e CNPJ duplicado", async ({
     "11.222.333/0001-81",
   );
   await tab(page, "Endereço e contatos");
-  await page.getByLabel("Telefone fixo", { exact: true }).fill("6533221234");
-  await expect(page.getByLabel("Telefone fixo", { exact: true })).toHaveValue(
+  await page.getByRole("button", { name: "Adicionar telefone" }).click();
+  await page.getByLabel("Número com DDD", { exact: true }).fill("6533221234");
+  await expect(page.getByLabel("Número com DDD", { exact: true })).toHaveValue(
     "(65) 3322-1234",
   );
+  await page.getByRole("button", { name: "Adicionar telefone" }).click();
   await page
-    .getByLabel("Celular / WhatsApp", { exact: true })
+    .getByLabel("Tipo de telefone", { exact: true })
+    .nth(1)
+    .selectOption("Celular");
+  await page
+    .getByLabel("Número com DDD", { exact: true })
+    .nth(1)
     .fill("65999991234");
   await expect(
-    page.getByLabel("Celular / WhatsApp", { exact: true }),
+    page.getByLabel("Número com DDD", { exact: true }).nth(1),
   ).toHaveValue("(65) 99999-1234");
   await page.getByLabel("E-mail principal", { exact: true }).fill("inválido");
   await page.getByRole("button", { name: "Salvar rascunho" }).click();

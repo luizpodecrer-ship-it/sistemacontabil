@@ -1,3 +1,13 @@
+import {
+  phoneFields,
+  generalExtra,
+  addressExtra,
+  registryExtra,
+  personnelBase,
+  visiblePayrollFields,
+  visiblePatFields,
+  esocialFields,
+} from "./personnel";
 import type { FieldSpec } from "@/components/ui/form-field";
 import {
   cnpjKey,
@@ -25,6 +35,10 @@ export type Company = {
   activities: Row[];
   regimes: Row[];
   people: Row[];
+  phones: Row[];
+  payrollPeriods: Row[];
+  patPeriods: Row[];
+  esocialPeriods: Row[];
   attachments: Attachment[];
   history: { at: string; action: string; fields: string[] }[];
   status: "Rascunho" | "Concluído";
@@ -38,6 +52,7 @@ export const tabs = [
   "Sócios e representantes",
   "Estabelecimentos",
   "Atendimento",
+  "Configurações de pessoal",
   "Documentos",
   "Histórico",
 ];
@@ -320,16 +335,92 @@ export const serviceFields: FieldSpec[] = [
   ),
 ];
 export const matrixFields: FieldSpec[] = branchFields.slice(4, 9);
+identity.unshift(
+  opts("personType", "Tipo de cliente", ["Pessoa jurídica", "Pessoa física"], {
+    required: true,
+  }),
+);
+identity.push(...generalExtra);
+address.push(...addressExtra);
+branchFields.push(...addressExtra);
+// Legacy phone fields remain validated for compatibility but the UI uses phone rows.
+export const contactFields = contacts.filter(
+  (f) => !["phone", "mobile"].includes(f.key),
+);
+matrixFields.push(...registryExtra);
+export function identityFields(values: Values): FieldSpec[] {
+  const physical = values.personType === "Pessoa física";
+  return identity
+    .filter(
+      (f) => !physical || !["legalNature", "capital", "size"].includes(f.key),
+    )
+    .map((f) =>
+      f.key === "cnpj"
+        ? {
+            ...f,
+            label: physical ? "CPF" : "CNPJ",
+            mask: physical ? "cpf" : "cnpj",
+            placeholder: physical ? "000.000.000-00" : "00.000.000/0000-00",
+            hint: physical
+              ? "CPF do cliente ou empregador pessoa física."
+              : "Aceita CNPJ numérico e alfanumérico. Consulta automática disponível para inscrição numérica.",
+          }
+        : f.key === "legalName"
+          ? {
+              ...f,
+              label: physical ? "Nome completo" : "Razão social",
+              placeholder: physical
+                ? "Nome completo do cliente"
+                : f.placeholder,
+            }
+          : f,
+    );
+}
+export function normalizeCompany(company: Company): Company {
+  const values: Values = { personType: "Pessoa jurídica", ...company.values };
+  const phones = Array.isArray(company.phones) ? company.phones : [];
+  if (!Array.isArray(company.phones)) {
+    if (values.phone)
+      phones.push({
+        id: company.id + "-legacy-phone",
+        values: { type: "Fixo", number: values.phone, primary: "Sim" },
+      });
+    if (values.mobile)
+      phones.push({
+        id: company.id + "-legacy-mobile",
+        values: {
+          type: "Celular",
+          number: values.mobile,
+          primary: phones.length ? "Não" : "Sim",
+        },
+      });
+  }
+  delete values.phone;
+  delete values.mobile;
+  return {
+    ...company,
+    values,
+    phones,
+    payrollPeriods: company.payrollPeriods || [],
+    patPeriods: company.patPeriods || [],
+    esocialPeriods: company.esocialPeriods || [],
+  };
+}
 export const uid = () => crypto.randomUUID();
 export function newCompany(): Company {
   return {
     id: uid(),
     values: {
       code: `EMP-${Date.now().toString().slice(-6)}`,
+      personType: "Pessoa jurídica",
       officeStatus: "Em implantação",
       country: "Brasil",
       services: "",
     },
+    phones: [],
+    payrollPeriods: [],
+    patPeriods: [],
+    esocialPeriods: [],
     branches: [],
     activities: [],
     regimes: [],
@@ -404,11 +495,12 @@ export function validateCompany(
   const errors: Values = {};
   const v = company.values;
   const all = [
-    ...identity,
+    ...identityFields(v),
     ...address,
     ...contacts,
     ...serviceFields,
     ...matrixFields,
+    ...personnelBase,
   ];
   all.forEach((spec) => {
     const e = validateField(
@@ -467,11 +559,12 @@ export function validateCompany(
   const principals = company.activities.filter(
     (r) => r.values.kind === "Principal",
   );
-  if (complete && principals.length !== 1)
+  if (complete && v.personType !== "Pessoa física" && principals.length !== 1)
     errors.activities =
       "Cadastre exatamente uma atividade principal para a matriz.";
   if (
     complete &&
+    v.personType !== "Pessoa física" &&
     !company.regimes.some(
       (r) =>
         r.values.start && !r.values.end && r.values.regime !== "Em definição",
@@ -496,11 +589,118 @@ export function validateCompany(
   );
   if (share > 100)
     errors.people = "A soma das participações não pode ultrapassar 100%.";
+  if (v.personType === "Pessoa física" && company.branches.length)
+    errors.branches =
+      "Cadastro de pessoa física não admite filiais; mantenha os estabelecimentos apenas no cadastro PJ.";
+  if (v.activityStart && v.activityEnd && v.activityEnd < v.activityStart)
+    errors.activityEnd =
+      "O término das atividades não pode ser anterior ao início.";
+  const registrationLengths: Record<string, number> = {
+    "CEI (histórico)": 12,
+    CNO: 12,
+    CAEPF: 14,
+  };
+  if (
+    v.secondaryRegistration &&
+    (!v.secondaryRegistrationType ||
+      digits(v.secondaryRegistration).length !==
+        registrationLengths[v.secondaryRegistrationType])
+  )
+    errors.secondaryRegistration =
+      "Selecione o tipo e informe o número completo da inscrição complementar.";
+  if (
+    v.legalResponsibleId &&
+    !company.people.some((p) => p.id === v.legalResponsibleId)
+  )
+    errors.legalResponsibleId =
+      "Selecione uma pessoa vinculada a este cadastro.";
+  validateRows(company.phones || [], phoneFields, "phones", complete, errors);
+  if (
+    (company.phones || []).filter((p) => p.values.primary === "Sim").length > 1
+  )
+    errors.phones = "Indique apenas um telefone principal.";
+  if (
+    complete &&
+    company.phones?.length &&
+    !company.phones.some((p) => p.values.primary === "Sim")
+  )
+    errors.phones =
+      "Indique o telefone principal entre os contatos cadastrados.";
+  for (const [group, getFields] of [
+    ["payrollPeriods", visiblePayrollFields],
+    ["patPeriods", visiblePatFields],
+    ["esocialPeriods", () => esocialFields],
+  ] as const) {
+    const rows = company[group] || [];
+    rows.forEach((row) => {
+      validateRows([row], getFields(row.values), group, complete, errors);
+      for (const [key, value] of Object.entries(row.values)) {
+        if (!getFields(row.values).some((f) => f.key === key)) continue;
+        if (
+          key.endsWith("Rate") &&
+          value &&
+          (!/^\d{1,3}([,.]\d{1,4})?$/.test(value) ||
+            Number(value.replace(",", ".")) > 100)
+        )
+          errors[`${group}.${row.id}.${key}`] =
+            "Informe um percentual entre 0 e 100.";
+        if (
+          ["upToFive", "aboveFive"].includes(key) &&
+          value &&
+          (!/^\d+$/.test(value) || !Number.isSafeInteger(Number(value)))
+        )
+          errors[`${group}.${row.id}.${key}`] =
+            "Informe uma quantidade inteira e não negativa.";
+      }
+      if (
+        group === "payrollPeriods" &&
+        row.values.mei === "Sim" &&
+        row.values.simples !== "Optante"
+      )
+        errors[`${group}.${row.id}.mei`] =
+          "A condição MEI/SIMEI exige opção pelo Simples Nacional.";
+      if (
+        group === "patPeriods" &&
+        row.values.adherent === "Sim" &&
+        (row.values.upToFive || row.values.aboveFive) &&
+        !row.values.countSource
+      )
+        errors[`${group}.${row.id}.countSource`] =
+          "Identifique a origem das quantidades informadas.";
+    });
+    // Payroll can have concomitant activities: only periods for the same CNAE conflict.
+    const ordered = [...rows]
+      .filter((r) => r.values.start)
+      .sort((a, b) => a.values.start.localeCompare(b.values.start));
+    ordered.forEach((row, index) => {
+      if (
+        ordered
+          .slice(0, index)
+          .some(
+            (previous) =>
+              (group !== "payrollPeriods" ||
+                (previous.values.cnae || "") === (row.values.cnae || "")) &&
+              (!previous.values.end || previous.values.end >= row.values.start),
+          )
+      )
+        errors[`${group}.${row.id}.start`] =
+          "Há vigências sobrepostas para esta configuração.";
+    });
+  }
   if (complete && !v.services)
     errors.services = "Selecione pelo menos uma área atendida.";
   return errors;
 }
 export function errorTab(key: string): number {
+  if (key === "legalResponsibleId") return 4;
+  if (key.startsWith("phones")) return 1;
+  if (
+    ["payrollPeriods", "patPeriods", "esocialPeriods"].some((g) =>
+      key.startsWith(g),
+    ) ||
+    personnelBase.some((f) => f.key === key)
+  )
+    return 7;
   if (key.startsWith("activities")) return 2;
   if (key.startsWith("regimes")) return 3;
   if (key.startsWith("people")) return 4;

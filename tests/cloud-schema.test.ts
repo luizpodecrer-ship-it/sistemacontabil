@@ -24,6 +24,15 @@ test("Migração PostgreSQL: autenticação, isolamento entre escritórios, revi
     ),
   );
   await db.exec(
+    await readFile(
+      new URL(
+        "../supabase/migrations/002_company_person_type.sql",
+        import.meta.url,
+      ),
+      "utf8",
+    ),
+  );
+  await db.exec(
     "grant select,insert,update,delete on all tables in schema public to authenticated;set role authenticated;",
   );
   await assert.rejects(() => db.query("select public.ensure_own_workspace()"));
@@ -109,10 +118,38 @@ test("Migração PostgreSQL: autenticação, isolamento entre escritórios, revi
       }),
     ]),
   );
+  await assert.rejects(() =>
+    db.query("select public.save_company($1,$2::jsonb)", [
+      "invalid-cpf",
+      JSON.stringify({
+        id: "invalid-cpf",
+        values: {
+          personType: "Pessoa física",
+          cnpj: "11111111111",
+          legalName: "Inválido",
+        },
+      }),
+    ]),
+  );
+  const validation = await db.query<{ valid: boolean }>(
+    "select public.registration_is_valid('12ABC34501DE35','Pessoa jurídica') as valid",
+  );
+  assert.equal(validation.rows[0].valid, true);
   await db.query(
     "insert into storage.objects(bucket_id,name)values('workspace-files',$1)",
     [wid + "/file"],
   );
+  await db.query("select public.save_company($1,$2::jsonb)", [
+    "pf-1",
+    JSON.stringify({
+      id: "pf-1",
+      values: {
+        personType: "Pessoa física",
+        cnpj: "529.982.247-25",
+        legalName: "Cliente PF",
+      },
+    }),
+  ]);
   await db.exec(
     "select set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',false)",
   );

@@ -8,6 +8,7 @@ export interface FieldSpec {
   type?: InputHTMLAttributes<HTMLInputElement>["type"];
   mask?: Mask;
   options?: string[];
+  choices?: { value: string; label: string }[];
   required?: boolean;
   hint?: string;
   wide?: boolean;
@@ -48,12 +49,16 @@ export function FormField({ spec, value, error, onChange, onBlur }: Props) {
           </span>
         )}
       </label>
-      {spec.options ? (
+      {spec.options || spec.choices ? (
         <select {...common} onChange={(e) => onChange(e.target.value)}>
           <option value="">Selecione</option>
-          {spec.options.map((o) => (
-            <option key={o} value={o}>
-              {o}
+          {(
+            spec.choices ||
+            spec.options?.map((o) => ({ value: o, label: o })) ||
+            []
+          ).map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
             </option>
           ))}
         </select>

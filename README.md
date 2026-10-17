@@ -42,7 +42,7 @@ Importe este repositório, selecione a branch `main` e mantenha a pasta raiz `./
 
 ## Cadastro de empresas
 
-Acesse **Empresas → Nova empresa**. O módulo agora usa React/TypeScript, com nove abas: identificação, endereço e contatos, atividades, enquadramentos, sócios e representantes, estabelecimentos, atendimento, documentos e histórico. A lista de Empresas exibe apenas os cadastros locais; os exemplos dos demais módulos continuam demonstrativos.
+Acesse **Empresas → Nova empresa**. O módulo agora usa React/TypeScript, com dez abas: identificação, endereço e contatos, atividades, enquadramentos, sócios e representantes, estabelecimentos, atendimento, configurações de pessoal, documentos e histórico. A lista de Empresas exibe apenas os cadastros locais; os exemplos dos demais módulos continuam demonstrativos.
 
 - `components/ui/form-field.tsx`: campo reutilizável com label, exemplo cinza, mensagem de ajuda, estado inválido e erro associado para tecnologia assistiva.
 - `lib/formats.ts`: máscaras e verificações compartilhadas (CNPJ numérico/alfanumérico, CPF, telefone com DDD, CEP, CNAE e moeda).
@@ -65,3 +65,8 @@ Fluxos implementados: tarefas e obrigações com evidência; documentos com orig
 **A implementação não representa cobertura integral dos módulos contábeis ou operação pronta para produção.** A matriz detalhada de funcionalidades implementadas e pendentes está em [docs/COBERTURA.md](docs/COBERTURA.md). Transmissões oficiais, cálculos legais completos, equipe com permissões e portais autenticados externos dependem de desenvolvimento e validação adicionais.
 
 Modo Supabase opcional: consulte [docs/CONFIGURAR_NUVEM.md](docs/CONFIGURAR_NUVEM.md), `.env.example` e `supabase/migrations/001_workspace.sql`. Sem as duas variáveis públicas, o sistema continua local. Nunca inclua chaves secretas em variáveis VITE. A migração SQL é testada em PostgreSQL embarcado; autenticação, armazenamento e políticas devem ser homologados também no Supabase real antes de ativar dados de clientes.
+
+
+## Cadastro: referências visuais e consulta CNPJ
+
+A evolução do cadastro inclui CPF/CNPJ, telefones em lista, dados complementares e configurações de pessoal por vigência. A consulta CNPJ usa dados públicos da BrasilAPI, preenche vazios e oferece revisão explícita para diferenças; indisponibilidade não impede cadastro manual. Consulte [docs/CADASTRO_REFERENCIAS.md](docs/CADASTRO_REFERENCIAS.md) para mapeamento, migração de dados antigos, limites da fonte e instruções da migração Supabase 002.

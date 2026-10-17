@@ -88,7 +88,7 @@ export async function cloudSaveCompany(company: Company) {
   });
   if (error)
     throw new Error(
-      "Não foi possível salvar a empresa em nuvem. Confira o CNPJ duplicado, o banco e a conexão.",
+      "Não foi possível salvar a empresa em nuvem. Confira a inscrição CPF/CNPJ duplicada, as migrações do banco e a conexão.",
     );
   companyVersions.set(company.id, company.updatedAt || "");
   return company.id;
