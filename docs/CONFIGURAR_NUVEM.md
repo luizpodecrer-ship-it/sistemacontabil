@@ -12,7 +12,7 @@ A Vercel hospeda o site. Para contas e dados compartilhados, o código também p
 
 ## 2. Instalar a estrutura do banco
 
-O responsável técnico deve revisar `supabase/migrations/001_workspace.sql` e executar o arquivo completo no SQL Editor de um projeto novo, seguido de `supabase/migrations/002_company_person_type.sql` e `supabase/migrations/003_import_companies.sql`. Execute apenas as migrações ainda não aplicadas: a 002 habilita CPF e a 003 habilita importação de empresas em lote. O arquivo cria tabelas, funções, políticas de isolamento e um bucket privado. Não execute sobre um banco existente sem revisar conflitos. As políticas são destinadas ao primeiro modo de nuvem, com uma conta proprietária por escritório. Não representam o modelo final de equipe/cliente/empregado.
+O responsável técnico deve revisar `supabase/migrations/001_workspace.sql` e executar o arquivo completo no SQL Editor de um projeto novo, seguido de `supabase/migrations/002_company_person_type.sql` e `supabase/migrations/003_import_companies.sql`, depois `supabase/migrations/004_branding.sql`. Execute apenas as migrações ainda não aplicadas: a 002 habilita CPF e a 003 habilita importação de empresas em lote e a 004 separa a identidade visual do escritório e da plataforma. A atribuição do administrador da plataforma está descrita em [IDENTIDADE_VISUAL.md](IDENTIDADE_VISUAL.md). O arquivo cria tabelas, funções, políticas de isolamento e um bucket privado. Não execute sobre um banco existente sem revisar conflitos. As políticas são destinadas ao primeiro modo de nuvem, com uma conta proprietária por escritório. Não representam o modelo final de equipe/cliente/empregado.
 
 ## 3. Configurar autenticação
 

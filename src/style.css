@@ -90,3 +90,10 @@ select.form-control:has(option[value=""]:checked) { color:#737373; }
 @media (min-width:768px) {
   .company-module .form-control { min-height:40px; padding:9px 12px; border-radius:10px; }
 }
+
+/* Transparent logos remain visible against light and dark image pixels. */
+.logo-checker { background-color:#fff; background-image:linear-gradient(45deg,#e5e5e5 25%,transparent 25%),linear-gradient(-45deg,#e5e5e5 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#e5e5e5 75%),linear-gradient(-45deg,transparent 75%,#e5e5e5 75%);background-size:16px 16px;background-position:0 0,0 8px,8px -8px,-8px 0; }
+.branding-module .preview-demo-links { display:none; }
+.collapsed [data-platform-logo] {display:none}
+.rail:not(.collapsed) .platform-icon.with-logo {display:none}
+.rail.collapsed .platform-icon {display:grid}

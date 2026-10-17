@@ -1,3 +1,4 @@
+import { loadPlatform, applyPlatform } from "../features/branding/storage";
 import { createRoot, type Root } from "react-dom/client";
 import { useEffect, useState } from "react";
 import { FormField } from "@/components/ui/form-field";
@@ -48,6 +49,11 @@ function CloudAuth({ done, logout }: { done: () => void; logout: boolean }) {
       data.subscription.unsubscribe();
     };
   }, []);
+  useEffect(() => {
+    void loadPlatform()
+      .then(applyPlatform)
+      .catch(() => {});
+  }, [busy, mode]);
   const submit = async () => {
     setMessage("");
     if (!email && mode !== "password") {
@@ -106,7 +112,10 @@ function CloudAuth({ done, logout }: { done: () => void; logout: boolean }) {
   return (
     <main className="min-h-dvh flex items-center justify-center px-5 py-12 bg-white">
       <div className="max-w-sm w-full">
-        <p className="text-xl font-semibold mb-10">nexo.</p>
+        <div
+          data-platform-logo
+          className="h-16 max-w-64 mb-10 text-xl font-semibold"
+        />
         <h1 className="text-2xl font-semibold mb-3">
           {mode === "signup"
             ? "Crie seu escritório"

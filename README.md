@@ -78,3 +78,7 @@ Na página Empresas, o botão **Importar empresas** lê o relatório XLS com as 
 ## Colaboradores
 
 A aba **Colaboradores**, ao lado de Atendimento e pessoal, compartilha o cadastro com Pessoal e vínculos. Possui blocos para documentos, contrato, jornada, dependentes e informações do eSocial. A Carteira Digital usa o CPF validado como identificação, sem consulta a dados oficiais. Veja [o guia e os limites da implementação](docs/COLABORADORES.md).
+
+## Identidade visual e administração
+
+**Personalização** controla o escritório; **Administração → Identidade do sistema** controla nome, logo e ícone da plataforma, com dados independentes. Logos têm limite de 500 × 500 px ou 500 × 250 px, sem distorção. No modo local, alterações ficam neste navegador; em nuvem, a migração 004 e o papel administrativo no banco controlam persistência e acesso. Veja [IDENTIDADE_VISUAL.md](docs/IDENTIDADE_VISUAL.md).
