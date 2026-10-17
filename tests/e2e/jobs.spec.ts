@@ -102,7 +102,7 @@ test("Catálogo compartilhado: catálogo CBO, validação, salários, requisitos
     page.getByRole("cell", { name: "Porteiro da recepção", exact: true }),
   ).toBeVisible();
   await page.getByLabel("Buscar cargos", { exact: true }).fill("");
-  await page.getByRole("button", { name: "Visão geral", exact: true }).click();
+  await page.getByRole("button", { name: "Dashboard", exact: true }).click();
   await expect(
     page.getByRole("tab", { name: "Cargos", exact: true }),
   ).toHaveCount(0);
@@ -190,7 +190,7 @@ test("Catálogo compartilhado: catálogo CBO, validação, salários, requisitos
   await expect(page.getByRole("dialog")).not.toBeVisible();
 });
 
-test("Cargos ficam abaixo de Visão geral e são selecionados no colaborador pelo segmento", async ({
+test("Cargos ficam abaixo de Dashboard e são selecionados no colaborador pelo segmento", async ({
   page,
 }) => {
   await page.goto("/");

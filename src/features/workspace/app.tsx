@@ -1111,7 +1111,7 @@ export function Workspace({ moduleId }: { moduleId: string }) {
       </p>
     );
   const names: Record<string, string> = {
-    home: "Visão geral",
+    home: "Dashboard",
     jobs: "Cargos",
     unions: "Sindicatos",
     chart: "Indicadores e relatórios",

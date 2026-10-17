@@ -38,7 +38,7 @@ async function start(page: Page) {
   }, seed);
   await page.getByRole("button", { name: "Explorar a prévia" }).click();
   await expect(
-    page.getByRole("heading", { name: "Visão geral", exact: true }),
+    page.getByRole("heading", { name: "Dashboard", exact: true }),
   ).toBeVisible();
 }
 async function nav(page: Page, name: string) {
