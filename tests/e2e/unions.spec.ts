@@ -1,6 +1,8 @@
 import { test, expect, type Page } from "@playwright/test";
 async function enter(page: Page) {
   await page.goto("/");
+  await expect(page.getByRole("button", { name: /Continuar com Google/i })).toHaveCount(0);
+  await expect(page.getByText("OU", { exact: true })).toHaveCount(0);
   await page
     .getByRole("button", { name: "Explorar a prévia", exact: true })
     .click();
@@ -115,7 +117,9 @@ test("Sindicatos abaixo de Empresas: cadastro, máscaras, CEP, duplicidade, edi�
     page.getByRole("cell", { name: "Inativo", exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByText("Informação de teste a conferir", { exact: false }),
+    page
+      .getByRole("region", { name: "Tabela de sindicatos", exact: true })
+      .getByText("Informação de teste a conferir", { exact: true }),
   ).toBeVisible();
   await page.setViewportSize({ width: 390, height: 844 });
   expect(
@@ -254,4 +258,95 @@ test("Arquivo inválido explica o problema e permite selecionar novamente o mesm
     page.getByRole("status").filter({ hasText: "Planilha lida:" }),
   ).toBeVisible();
   await expect(page.getByRole("alert")).toHaveCount(0);
+});
+
+test("Sindicatos: nomes longos e dados legíveis em celular, tablet e computador", async ({
+  page,
+}, testInfo) => {
+  await enter(page);
+  await page
+    .getByRole("button", { name: "Importar CNES", exact: true })
+    .click();
+  const title =
+    "Sindicato dos Agentes Comunitários de Saúde e Técnicos em Agentes Comunitários de Saúde e de Combate às Endemias da Regional de Caxias – Maranhão";
+  await page.getByLabel("Arquivo CNES", { exact: true }).setInputFiles({
+    name: "sindicatos-responsivos.csv",
+    mimeType: "text/csv",
+    buffer: Buffer.from(
+      `CNPJ;Denominação;UF\n04252011000110;${title};MA\n11444777000161;${"Sindicato".repeat(30)};MT`,
+    ),
+  });
+  await page
+    .getByRole("button", { name: "Cadastrar 2 sindicatos", exact: true })
+    .click();
+  for (const width of [360, 390, 768, 1024, 1440, 1920]) {
+    await page.setViewportSize({ width, height: 1000 });
+    const catalog = page.getByRole("region", {
+      name: "Tabela de sindicatos",
+      exact: true,
+    });
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    if (width < 768) {
+      await expect(catalog).toBeHidden();
+      const card = page.getByRole("article").filter({ hasText: title });
+      await expect(card.getByRole("heading", { name: title })).toBeVisible();
+      await expect(
+        card.getByText("04.252.011/0001-10", { exact: true }),
+      ).toBeVisible();
+      await expect(
+        card.getByRole("button", { name: `Editar sindicato ${title}` }),
+      ).toBeVisible();
+      expect(
+        await card.evaluate((el) => el.scrollWidth <= el.clientWidth),
+      ).toBe(true);
+    } else {
+      await expect(catalog).toBeVisible();
+      const table = catalog.getByRole("table");
+      expect(
+        await table.evaluate((el) => el.getBoundingClientRect().width),
+      ).toBeGreaterThanOrEqual(1180);
+      for (const label of [
+        "CNPJ",
+        "Representação",
+        "Situação no CNES",
+        "Situação interna",
+        "Ações",
+      ]) {
+        const header = catalog.getByRole("columnheader", {
+          name: label,
+          exact: true,
+        });
+        expect(
+          await header.evaluate((el) => getComputedStyle(el).whiteSpace),
+        ).toBe("nowrap");
+      }
+      await catalog.evaluate((el) => {
+        el.scrollLeft = el.scrollWidth;
+      });
+      await expect(
+        catalog.getByRole("button", {
+          name: `Editar sindicato ${title}`,
+          exact: true,
+        }),
+      ).toBeVisible();
+      await catalog.evaluate((el) => {
+        el.scrollLeft = 0;
+      });
+    }
+    await page.screenshot({
+      path: testInfo.outputPath(`sindicatos-${width}.png`),
+      fullPage: true,
+    });
+  }
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page
+    .getByRole("button", { name: `Editar sindicato ${title}`, exact: true })
+    .click();
+  await expect(
+    page.getByLabel("Denominação / razão social", { exact: true }),
+  ).toHaveValue(title);
 });

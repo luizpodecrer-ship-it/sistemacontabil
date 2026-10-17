@@ -162,6 +162,12 @@ export function Unions({
         ).includes(normalize(query)),
     )
     .sort((a, b) => a.values.title.localeCompare(b.values.title, "pt-BR"));
+  function editUnion(row: Item) {
+    setDraft(structuredClone(row));
+    setDirty(false);
+    setErrors({});
+    setMessage("");
+  }
   if (importing)
     return (
       <UnionImport
@@ -372,8 +378,80 @@ export function Unions({
       <p className="mb-3 text-xs text-neutral-500">
         {rows.length} sindicato(s) encontrado(s)
       </p>
-      <div className="relative overflow-x-auto rounded-2xl border border-neutral-200 bg-white">
-        <table className="w-full text-left text-xs">
+      <div className="space-y-3 md:hidden" aria-label="Lista de sindicatos">
+        {rows.slice(page * 50, page * 50 + 50).map((row) => (
+          <article
+            key={row.id}
+            className="min-w-0 rounded-xl border border-neutral-200 bg-white p-4"
+          >
+            <div className="mb-3 flex items-center justify-between gap-3 text-xs text-neutral-500">
+              <span>Código {row.values.code}</span>
+              <UnionStatus status={row.values.status} />
+            </div>
+            <h3 className="text-sm font-semibold leading-6 [overflow-wrap:anywhere]">
+              {row.values.title}
+            </h3>
+            {row.values.sigla && (
+              <p className="mt-1 text-xs text-neutral-500 [overflow-wrap:anywhere]">
+                {row.values.sigla}
+              </p>
+            )}
+            <dl className="mt-4 grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-3 text-xs">
+              <div>
+                <dt className="text-neutral-500">CNPJ</dt>
+                <dd className="mt-1 whitespace-nowrap tabular-nums">
+                  {row.values.cnpj}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-neutral-500">UF</dt>
+                <dd className="mt-1">{row.values.uf || "—"}</dd>
+              </div>
+              <div className="col-span-2">
+                <dt className="text-neutral-500">Representação</dt>
+                <dd className="mt-1">{row.values.representation}</dd>
+              </div>
+              <div className="col-span-2">
+                <dt className="text-neutral-500">Situação no CNES</dt>
+                <dd className="mt-1 leading-5 [overflow-wrap:anywhere]">
+                  {row.values.cnesStatus || "Não informado"}
+                  <span className="block text-neutral-500">
+                    {sourceDateLabel(row)}
+                  </span>
+                </dd>
+              </div>
+            </dl>
+            <button
+              type="button"
+              className={`${button} mt-4 w-full min-h-11`}
+              aria-label={`Editar sindicato ${row.values.title}`}
+              onClick={() => editUnion(row)}
+            >
+              Editar cadastro
+            </button>
+          </article>
+        ))}
+      </div>
+      <p className="mb-2 hidden text-xs text-neutral-500 md:block xl:hidden">
+        Deslize a tabela para consultar todas as colunas.
+      </p>
+      <div
+        role="region"
+        aria-label="Tabela de sindicatos"
+        tabIndex={0}
+        className="relative hidden overflow-x-auto rounded-2xl border border-neutral-200 bg-white focus-visible:outline-2 focus-visible:outline-neutral-500 md:block"
+      >
+        <table className="w-full min-w-[1180px] table-fixed text-left text-xs leading-5">
+          <colgroup>
+            <col className="w-[76px]" />
+            <col />
+            <col className="w-[166px]" />
+            <col className="w-[132px]" />
+            <col className="w-[52px]" />
+            <col className="w-[190px]" />
+            <col className="w-[112px]" />
+            <col className="w-[76px]" />
+          </colgroup>
           <thead className="bg-neutral-50 text-neutral-500">
             <tr>
               {[
@@ -382,49 +460,64 @@ export function Unions({
                 "CNPJ",
                 "Representação",
                 "UF",
-                "Situação na fonte CNES",
+                "Situação no CNES",
                 "Situação interna",
                 "Ações",
-              ].map((s) => (
-                <th className="p-3 font-medium" key={s}>
-                  {s}
+              ].map((label) => (
+                <th
+                  className="whitespace-nowrap px-4 py-3 font-medium"
+                  key={label}
+                >
+                  {label}
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
             {rows.slice(page * 50, page * 50 + 50).map((row) => (
-              <tr key={row.id} className="border-t border-neutral-100">
-                <td className="p-3">{row.values.code}</td>
-                <td className="p-3">
-                  <strong className="font-medium">{row.values.title}</strong>
-                  <span className="mt-1 block text-neutral-500">
-                    {row.values.sigla}
+              <tr
+                key={row.id}
+                className="border-t border-neutral-100 align-top hover:bg-neutral-50/60"
+              >
+                <td className="px-4 py-4 whitespace-nowrap tabular-nums text-neutral-500">
+                  {row.values.code}
+                </td>
+                <td className="px-4 py-4">
+                  <strong className="block font-medium [overflow-wrap:anywhere]">
+                    {row.values.title}
+                  </strong>
+                  {row.values.sigla && (
+                    <span className="mt-1 block text-neutral-500 [overflow-wrap:anywhere]">
+                      {row.values.sigla}
+                    </span>
+                  )}
+                </td>
+                <td className="px-4 py-4 whitespace-nowrap tabular-nums">
+                  {row.values.cnpj}
+                </td>
+                <td className="px-4 py-4 whitespace-nowrap">
+                  {row.values.representation}
+                </td>
+                <td className="px-4 py-4 whitespace-nowrap">
+                  {row.values.uf || "—"}
+                </td>
+                <td className="px-4 py-4 text-neutral-500">
+                  <span className="block [overflow-wrap:anywhere]">
+                    {row.values.cnesStatus || "Não informado"}
+                  </span>
+                  <span className="mt-1 block whitespace-nowrap text-[11px]">
+                    {sourceDateLabel(row)}
                   </span>
                 </td>
-                <td className="p-3 whitespace-nowrap">{row.values.cnpj}</td>
-                <td className="p-3">{row.values.representation}</td>
-                <td className="p-3">{row.values.uf || "—"}</td>
-                <td className="p-3 text-neutral-500">
-                  {row.values.cnesStatus || "Não informado"}
-                  <span className="mt-1 block text-[10px]">
-                    {row.values.sourceDate
-                      ? `Referência: ${row.values.sourceDate.split("-").reverse().join("/")}`
-                      : "Sem data de referência"}
-                  </span>
+                <td className="px-4 py-4">
+                  <UnionStatus status={row.values.status} />
                 </td>
-                <td className="p-3">{row.values.status}</td>
-                <td className="p-3">
+                <td className="px-4 py-2">
                   <button
                     type="button"
-                    className="underline"
+                    className="min-h-11 underline underline-offset-4"
                     aria-label={`Editar sindicato ${row.values.title}`}
-                    onClick={() => {
-                      setDraft(structuredClone(row));
-                      setDirty(false);
-                      setErrors({});
-                      setMessage("");
-                    }}
+                    onClick={() => editUnion(row)}
                   >
                     Editar
                   </button>
@@ -433,13 +526,13 @@ export function Unions({
             ))}
           </tbody>
         </table>
-        {!rows.length && (
-          <p className="p-5 text-sm text-neutral-500">
-            Nenhum sindicato encontrado. Cadastre uma entidade ou importe o
-            arquivo do CNES.
-          </p>
-        )}
       </div>
+      {!rows.length && (
+        <p className="rounded-xl border border-neutral-200 bg-white p-5 text-sm text-neutral-500">
+          Nenhum sindicato encontrado. Cadastre uma entidade ou importe o
+          arquivo do CNES.
+        </p>
+      )}
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs">
         <button
           type="button"
@@ -467,5 +560,20 @@ export function Unions({
         </p>
       )}
     </section>
+  );
+}
+
+function sourceDateLabel(row: Item) {
+  return row.values.sourceDate
+    ? `Referência: ${row.values.sourceDate.split("-").reverse().join("/")}`
+    : "Sem data de referência";
+}
+function UnionStatus({ status }: { status: string }) {
+  return (
+    <span
+      className={`inline-flex whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-medium leading-4 ${status === "Ativo" ? "bg-emerald-50 text-emerald-700" : "bg-neutral-100 text-neutral-600"}`}
+    >
+      {status}
+    </span>
   );
 }

@@ -10,6 +10,12 @@ CNPJ e código interno não podem se repetir. É possível editar e inativar, se
 
 **Situação interna** serve à organização do escritório. **Situação na fonte CNES** é texto do arquivo ou da consulta feita pelo usuário. Uma entidade ativa no catálogo não é apresentada como automaticamente regular no CNES. O cadastro não determina enquadramento sindical de empresas/colaboradores, abrangência de convenções, validade de representação nem parâmetros de folha. O campo Sindicato no colaborador ainda mantém seu fluxo anterior nesta entrega.
 
+## Exibição responsiva
+
+No celular (abaixo de 768 px), os registros aparecem em cartões com identificação, CNPJ, UF, representação, situação CNES e botão de edição. A partir de 768 px, a tabela usa larguras mínimas, textos curtos sem quebra, nomes completos com quebra e rolagem horizontal contida quando necessário. As situações internas usam indicadores discretos. Nenhum dado cadastral é alterado pela apresentação.
+
+A exibição foi verificada no Chromium em larguras de 360, 390, 768, 1024, 1440 e 1920 px, incluindo nomes longos e edição no celular. Isso simula tamanhos de tela; não representa testes em dispositivos físicos ou no Safari.
+
 ## Acesso oficial e limitação desta entrega
 
 Foram tentados acessos ao portal MTE, ao serviço CNES e à consulta pública. O acesso HTTPS foi bloqueado neste ambiente na conexão com os domínios oficiais (HTTP 403). Não houve download da base oficial, validação do leiaute atual ou consulta a registros reais. Nenhum sindicato fictício foi publicado como entidade oficial; a base começa com os cadastros do usuário.
