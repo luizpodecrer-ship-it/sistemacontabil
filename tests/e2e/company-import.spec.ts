@@ -71,7 +71,9 @@ test("Importa XLS com revisão de duplicados, persiste e não repete cadastros",
   await expect(
     page.getByLabel("Data de inativação", { exact: true }),
   ).toHaveValue("2025-01-15");
-  await page.getByRole("tab", { name: "Atividades", exact: true }).click();
+  await page
+    .getByRole("tab", { name: "Fiscal e atividades", exact: true })
+    .click();
   await expect(
     page.getByLabel("CNAE preponderante", { exact: true }),
   ).toHaveValue("6920-6/01");

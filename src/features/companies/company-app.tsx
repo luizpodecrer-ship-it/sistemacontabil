@@ -84,18 +84,7 @@ export function mountCompanies(container: HTMLElement) {
   root = createRoot(container);
   root.render(<CompanyApp />);
 }
-const tabIcons = [
-  Building2,
-  MapPin,
-  Activity,
-  Landmark,
-  Users,
-  Network,
-  Handshake,
-  BriefcaseBusiness,
-  FileText,
-  History,
-];
+const tabIcons = [Building2, Landmark, Users, BriefcaseBusiness, FileText];
 const action =
   "btn fx-20 inline-flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-wait";
 function Grid({
@@ -114,10 +103,21 @@ function Grid({
   prefix?: string;
 }) {
   return (
-    <div className="grid gap-x-6 gap-y-5 md:grid-cols-2">
+    <div className="grid grid-cols-1 gap-x-4 gap-y-4 md:grid-cols-6 xl:grid-cols-12">
       {specs.map((spec) => (
         <FormField
           key={spec.key}
+          layoutClassName={
+            spec.wide
+              ? "min-w-0 md:col-span-6 xl:col-span-12"
+              : /^(code|uf|number|floor|room|postBoxUf|share)$/.test(spec.key)
+                ? "min-w-0 md:col-span-2 xl:col-span-2"
+                : /^(legalName|tradeName|legalNature|street|description|predominantCnaeDescription|name|email|financeEmail|docsEmail|website|registryOffice|officeName)$/.test(
+                      spec.key,
+                    )
+                  ? "min-w-0 md:col-span-6 xl:col-span-6"
+                  : "min-w-0 md:col-span-3 xl:col-span-3"
+          }
           spec={{ ...spec, key: prefix + spec.key }}
           value={values[spec.key] || ""}
           error={errors[prefix + spec.key]}
@@ -274,7 +274,7 @@ function Section({
                         ? Landmark
                         : Building2;
   return (
-    <section className="rounded-2xl border border-neutral-200 bg-white p-5 md:p-7 mb-5">
+    <section className="rounded-2xl border border-neutral-200 bg-white p-4 md:p-5 mb-4">
       <h2 className="text-base font-semibold flex items-center gap-2.5">
         <Icon
           className="h-4 w-4 text-neutral-500"
@@ -288,7 +288,7 @@ function Section({
           {description}
         </p>
       )}
-      <div className="mt-6">{children}</div>
+      <div className="mt-4">{children}</div>
     </section>
   );
 }
@@ -969,7 +969,7 @@ function CompanyApp() {
       <div
         role="tablist"
         aria-label="Seções do cadastro"
-        className="flex overflow-x-auto gap-1 border-b border-neutral-200 mb-6 pb-1"
+        className="flex flex-wrap gap-1 border-b border-neutral-200 mb-5 pb-1"
       >
         {tabs.map((label, i) => (
           <button
@@ -998,7 +998,7 @@ function CompanyApp() {
               }
             }}
             onClick={() => setTab(i)}
-            className={`shrink-0 inline-flex items-center gap-2 px-4 py-3 text-xs rounded-t-lg border-b-2 ${tab === i ? "text-neutral-900 border-neutral-900 bg-white font-semibold" : "border-transparent text-neutral-400 hover:text-neutral-700"}`}
+            className={`shrink-0 inline-flex items-center gap-2 px-3 py-3 text-xs rounded-t-lg border-b-2 ${tab === i ? "text-neutral-900 border-neutral-900 bg-white font-semibold" : "border-transparent text-neutral-400 hover:text-neutral-700"}`}
           >
             {(() => {
               const Icon = tabIcons[i];
@@ -1167,7 +1167,7 @@ function CompanyApp() {
               {grid(identityFields(editing.values))}
             </Section>
           )}
-          {tab === 1 && (
+          {tab === 0 && (
             <>
               <Section
                 title="Endereço da matriz"
@@ -1189,7 +1189,7 @@ function CompanyApp() {
               {repeated("phones", "Telefones", phoneFields)}
             </>
           )}
-          {tab === 2 && (
+          {tab === 1 && (
             <>
               <Section
                 title="CNAE preponderante"
@@ -1200,9 +1200,9 @@ function CompanyApp() {
               {repeated("activities", "Atividades econômicas", activityFields)}
             </>
           )}
-          {tab === 3 &&
+          {tab === 1 &&
             repeated("regimes", "Enquadramentos tributários", regimeFields)}
-          {tab === 4 && (
+          {tab === 2 && (
             <>
               {repeated("people", "Sócios e representantes", peopleFields)}
               <Section title="Responsável pelo cliente">
@@ -1222,7 +1222,7 @@ function CompanyApp() {
               </Section>
             </>
           )}
-          {tab === 5 && (
+          {tab === 2 && (
             <>
               <Section
                 title="Inscrições da matriz"
@@ -1239,7 +1239,7 @@ function CompanyApp() {
               )}
             </>
           )}
-          {tab === 6 && (
+          {tab === 3 && (
             <Section
               title="Atendimento e operação"
               description="Defina quem atende a empresa e o início da responsabilidade do escritório."
@@ -1289,7 +1289,7 @@ function CompanyApp() {
               </fieldset>
             </Section>
           )}
-          {tab === 7 && (
+          {tab === 3 && (
             <>
               <Section
                 title="Configurações de pessoal"
@@ -1324,7 +1324,7 @@ function CompanyApp() {
               </p>
             </>
           )}
-          {tab === 8 && (
+          {tab === 4 && (
             <Section
               title="Documentos cadastrais"
               description="PDF, PNG ou JPG, até 10 MB por arquivo e 30 MB por cadastro. Anexos ficam neste navegador. Não envie certificados digitais ou senhas."
@@ -1466,7 +1466,7 @@ function CompanyApp() {
               </div>
             </Section>
           )}
-          {tab === 9 && (
+          {tab === 4 && (
             <Section
               title="Histórico do cadastro"
               description="Registro local de salvamentos; não substitui auditoria de um sistema com usuários autenticados."

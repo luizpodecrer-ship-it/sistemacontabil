@@ -21,8 +21,16 @@ interface Props {
   error?: string;
   onChange: (value: string) => void;
   onBlur?: () => void;
+  layoutClassName?: string;
 }
-export function FormField({ spec, value, error, onChange, onBlur }: Props) {
+export function FormField({
+  spec,
+  value,
+  error,
+  onChange,
+  onBlur,
+  layoutClassName,
+}: Props) {
   const id = `field-${spec.key}`;
   const ref = useRef<HTMLInputElement>(null);
   const common = {
@@ -31,16 +39,19 @@ export function FormField({ spec, value, error, onChange, onBlur }: Props) {
     "aria-label": spec.label,
     "aria-invalid": Boolean(error),
     "aria-required": spec.required || undefined,
-    "aria-describedby": `${id}-hint${error ? ` ${id}-error` : ""}`,
+    "aria-describedby":
+      [spec.hint ? `${id}-hint` : "", error ? `${id}-error` : ""]
+        .filter(Boolean)
+        .join(" ") || undefined,
     className: "form-control",
     value,
     onBlur,
   };
   return (
-    <div className={spec.wide ? "md:col-span-2" : ""}>
+    <div className={layoutClassName ?? (spec.wide ? "md:col-span-2" : "")}>
       <label
         htmlFor={id}
-        className="mb-2 block text-xs font-semibold text-neutral-700"
+        className="mb-1.5 block text-xs font-semibold text-neutral-700"
       >
         {spec.label}
         {spec.required && (
@@ -154,12 +165,14 @@ export function FormField({ spec, value, error, onChange, onBlur }: Props) {
           }}
         />
       )}
-      <p id={`${id}-hint`} className="mt-1.5 text-[11px] text-neutral-400">
-        {spec.hint ||
-          (spec.required
-            ? "Obrigatório para concluir o cadastro."
-            : "Opcional")}
-      </p>
+      {spec.hint && (
+        <p
+          id={`${id}-hint`}
+          className="mt-1 text-[11px] leading-relaxed text-neutral-400"
+        >
+          {spec.hint}
+        </p>
+      )}
       {error && (
         <p id={`${id}-error`} className="mt-1 text-xs text-red-700">
           {error}

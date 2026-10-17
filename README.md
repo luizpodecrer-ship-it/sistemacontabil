@@ -42,7 +42,7 @@ Importe este repositório, selecione a branch `main` e mantenha a pasta raiz `./
 
 ## Cadastro de empresas
 
-Acesse **Empresas → Nova empresa**. O módulo agora usa React/TypeScript, com dez abas: identificação, endereço e contatos, atividades, enquadramentos, sócios e representantes, estabelecimentos, atendimento, configurações de pessoal, documentos e histórico. A lista de Empresas exibe apenas os cadastros locais; os exemplos dos demais módulos continuam demonstrativos.
+Acesse **Empresas → Nova empresa**. O módulo agora usa React/TypeScript, com cinco abas: Dados gerais; Fiscal e atividades; Pessoas e estabelecimentos; Atendimento e pessoal; Documentos e histórico. Os campos têm larguras proporcionais ao conteúdo, com até quatro por linha no computador e uma coluna no celular. A lista de Empresas exibe apenas os cadastros locais; os exemplos dos demais módulos continuam demonstrativos.
 
 - `components/ui/form-field.tsx`: campo reutilizável com label, exemplo cinza, mensagem de ajuda, estado inválido e erro associado para tecnologia assistiva.
 - `lib/formats.ts`: máscaras e verificações compartilhadas (CNPJ numérico/alfanumérico, CPF, telefone com DDD, CEP, CNAE e moeda).

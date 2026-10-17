@@ -34,10 +34,17 @@ test("Máscaras, rascunho persistido, edição e CNPJ duplicado", async ({
 }) => {
   await enter(page);
   await identity(page);
+  await expect(page.getByRole("tab")).toHaveCount(5);
+  await expect(page.getByLabel("CEP", { exact: true })).toBeVisible();
+  await expect(
+    page.getByLabel("E-mail principal", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText("Opcional", { exact: true })).toHaveCount(0);
+
   await expect(page.getByLabel("CNPJ", { exact: true })).toHaveValue(
     "11.222.333/0001-81",
   );
-  await tab(page, "Endereço e contatos");
+  await tab(page, "Dados gerais");
   await page.getByRole("button", { name: "Adicionar telefone" }).click();
   await page.getByLabel("Número com DDD", { exact: true }).fill("6533221234");
   await expect(page.getByLabel("Número com DDD", { exact: true })).toHaveValue(
@@ -97,7 +104,7 @@ test("CEP automático, resposta não encontrada e preservação de campos manuai
     await route.fulfill({ json: wrong ? { erro: true } : cepResult });
   });
   await enter(page);
-  await tab(page, "Endereço e contatos");
+  await tab(page, "Dados gerais");
   await page.getByLabel("Número", { exact: true }).fill("120");
   await page.getByLabel("Complemento", { exact: true }).fill("Sala 2");
   await page.getByLabel("CEP", { exact: true }).fill("78005000");
@@ -130,7 +137,7 @@ test("Conclusão exige as abas essenciais, guarda histórico e anexos após reca
   await identity(page);
   await page.getByRole("button", { name: "Concluir cadastro" }).click();
   await expect(page.locator("#company-errors")).toBeVisible();
-  await tab(page, "Endereço e contatos");
+  await tab(page, "Dados gerais");
   await page.getByLabel("CEP", { exact: true }).fill("78005000");
   await expect(page.getByLabel("Município", { exact: true })).toHaveValue(
     "Cuiabá",
@@ -139,13 +146,13 @@ test("Conclusão exige as abas essenciais, guarda histórico e anexos após reca
   await page
     .getByLabel("E-mail principal", { exact: true })
     .fill("contato@teste.com.br");
-  await tab(page, "Atividades");
+  await tab(page, "Fiscal e atividades");
   await page.getByRole("button", { name: "Adicionar atividade" }).click();
   await page.getByLabel("CNAE", { exact: true }).fill("6920601");
   await page
     .getByLabel("Descrição da atividade", { exact: true })
     .fill("Atividades de contabilidade");
-  await tab(page, "Enquadramentos");
+  await tab(page, "Fiscal e atividades");
   await page.getByRole("button", { name: "Adicionar enquadramento" }).click();
   await page
     .getByLabel("Regime tributário", { exact: true })
@@ -156,7 +163,7 @@ test("Conclusão exige as abas essenciais, guarda histórico e anexos após reca
   await page
     .getByLabel("Responsável pela conferência", { exact: true })
     .fill("Responsável Teste");
-  await tab(page, "Atendimento");
+  await tab(page, "Atendimento e pessoal");
   await page
     .getByLabel("Contador responsável", { exact: true })
     .fill("Responsável Teste");
@@ -167,7 +174,7 @@ test("Conclusão exige as abas essenciais, guarda histórico e anexos após reca
     .getByLabel("Primeira competência", { exact: true })
     .fill("2026-01");
   await page.getByLabel("Contábil", { exact: true }).check();
-  await tab(page, "Documentos");
+  await tab(page, "Documentos e histórico");
   await page.getByLabel("Selecionar documento").setInputFiles({
     name: "contrato-teste.pdf",
     mimeType: "application/pdf",
@@ -180,7 +187,7 @@ test("Conclusão exige as abas essenciais, guarda histórico e anexos após reca
   await expect(
     page.getByText("Cadastro concluído neste navegador."),
   ).toBeVisible();
-  await tab(page, "Histórico");
+  await tab(page, "Documentos e histórico");
   await expect(
     page.getByText("Cadastro concluído", { exact: true }),
   ).toBeVisible();
@@ -191,7 +198,7 @@ test("Conclusão exige as abas essenciais, guarda histórico e anexos após reca
   await page
     .getByRole("button", { name: "Abrir cadastro", exact: true })
     .click();
-  await tab(page, "Documentos");
+  await tab(page, "Documentos e histórico");
   await expect(
     page.getByText("contrato-teste.pdf", { exact: true }),
   ).toBeVisible();
@@ -214,12 +221,12 @@ test("Celular, teclado, confirmação de descarte e preservação ao recolher si
       () => document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBe(true);
-  await tab(page, "Identificação");
+  await tab(page, "Dados gerais");
   await page
-    .getByRole("tab", { name: "Identificação", exact: true })
+    .getByRole("tab", { name: "Dados gerais", exact: true })
     .press("ArrowRight");
   await expect(
-    page.getByRole("tab", { name: "Endereço e contatos", exact: true }),
+    page.getByRole("tab", { name: "Fiscal e atividades", exact: true }),
   ).toBeFocused();
   page.once("dialog", (dialog) => dialog.dismiss());
   await page.getByRole("button", { name: "Voltar para empresas" }).click();
@@ -228,7 +235,7 @@ test("Celular, teclado, confirmação de descarte e preservação ao recolher si
   ).toBeVisible();
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.getByRole("button", { name: "Recolher menu" }).click();
-  await tab(page, "Identificação");
+  await tab(page, "Dados gerais");
   await expect(page.getByLabel("Razão social", { exact: true })).toHaveValue(
     "Empresa de Teste Ltda.",
   );
@@ -261,7 +268,7 @@ test("Falha no CEP permite digitação manual e resposta antiga não substitui n
       .catch(() => {});
   });
   await enter(page);
-  await tab(page, "Endereço e contatos");
+  await tab(page, "Dados gerais");
   await page.getByLabel("CEP", { exact: true }).fill("11111111");
   await expect(
     page
@@ -292,7 +299,7 @@ test("Campos repetíveis, remoção com confirmação e apagar separador de más
   await cnpj.press("Backspace");
   await expect(cnpj).toHaveValue("12.223.330/0018-1");
   await cnpj.fill("11222333000181");
-  await tab(page, "Sócios e representantes");
+  await tab(page, "Pessoas e estabelecimentos");
   await page.getByRole("button", { name: "Adicionar pessoa" }).click();
   await page
     .getByLabel("Nome / razão social", { exact: true })
@@ -318,7 +325,15 @@ test("Campos repetíveis, remoção com confirmação e apagar separador de más
     .click();
   await page.getByRole("button", { name: "Remover", exact: true }).click();
   await expect(
-    page.getByText("Nenhum registro adicionado.", { exact: true }),
+    page
+      .locator("section")
+      .filter({
+        has: page.getByRole("heading", {
+          name: "Sócios e representantes",
+          exact: true,
+        }),
+      })
+      .getByText("Nenhum registro adicionado.", { exact: true }),
   ).toBeVisible();
 });
 

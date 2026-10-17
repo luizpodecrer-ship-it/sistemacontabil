@@ -45,16 +45,11 @@ export type Company = {
   updatedAt: string;
 };
 export const tabs = [
-  "Identificação",
-  "Endereço e contatos",
-  "Atividades",
-  "Enquadramentos",
-  "Sócios e representantes",
-  "Estabelecimentos",
-  "Atendimento",
-  "Configurações de pessoal",
-  "Documentos",
-  "Histórico",
+  "Dados gerais",
+  "Fiscal e atividades",
+  "Pessoas e estabelecimentos",
+  "Atendimento e pessoal",
+  "Documentos e histórico",
 ];
 const opts = (
   key: string,
@@ -706,22 +701,22 @@ export function validateCompany(
   return errors;
 }
 export function errorTab(key: string): number {
-  if (key === "legalResponsibleId") return 4;
-  if (key.startsWith("phones")) return 1;
+  if (key === "legalResponsibleId") return 2;
+  if (key.startsWith("phones")) return 0;
   if (
     ["payrollPeriods", "patPeriods", "esocialPeriods"].some((g) =>
       key.startsWith(g),
     ) ||
     personnelBase.some((f) => f.key === key)
   )
-    return 7;
-  if (predominantActivityFields.some((f) => f.key === key)) return 2;
-  if (key.startsWith("activities")) return 2;
-  if (key.startsWith("regimes")) return 3;
-  if (key.startsWith("people")) return 4;
+    return 3;
+  if (predominantActivityFields.some((f) => f.key === key)) return 1;
+  if (key.startsWith("activities")) return 1;
+  if (key.startsWith("regimes")) return 1;
+  if (key.startsWith("people")) return 2;
   if (key.startsWith("branches") || matrixFields.some((s) => s.key === key))
-    return 5;
-  if ([...address, ...contacts].some((s) => s.key === key)) return 1;
-  if (serviceFields.some((s) => s.key === key) || key === "services") return 6;
+    return 2;
+  if ([...address, ...contacts].some((s) => s.key === key)) return 0;
+  if (serviceFields.some((s) => s.key === key) || key === "services") return 3;
   return 0;
 }

@@ -55,7 +55,7 @@ test("CNPJ automático preenche campos vazios, preserva digitação e permite su
   await expect(page.getByLabel("Razão social", { exact: true })).toHaveValue(
     "Empresa da Consulta Ltda.",
   );
-  await tab(page, "Endereço e contatos");
+  await tab(page, "Dados gerais");
   await expect(page.getByLabel("Logradouro", { exact: true })).toHaveValue(
     "Rua Exemplo",
   );
@@ -65,7 +65,7 @@ test("CNPJ automático preenche campos vazios, preserva digitação e permite su
   await expect(page.getByLabel("Número com DDD", { exact: true })).toHaveValue(
     "(65) 3322-1234",
   );
-  await tab(page, "Atividades");
+  await tab(page, "Fiscal e atividades");
   await expect(page.getByLabel("CNAE", { exact: true })).toHaveCount(2);
   await page.getByRole("button", { name: "Salvar rascunho" }).click();
   await expect(page.getByText("Rascunho salvo neste navegador.")).toBeVisible();
@@ -76,7 +76,7 @@ test("CNPJ automático preenche campos vazios, preserva digitação e permite su
   await page
     .getByRole("button", { name: "Abrir cadastro", exact: true })
     .click();
-  await expect(page.locator("button[role=tab] svg")).toHaveCount(10);
+  await expect(page.locator("button[role=tab] svg")).toHaveCount(5);
 });
 test("Resposta antiga e indisponibilidade não substituem o novo CNPJ nem impedem preenchimento manual", async ({
   page,
@@ -117,7 +117,7 @@ test("CPF, telefones e configurações de pessoal persistem sem exigir parâmetr
   await expect(page.getByLabel("Capital social", { exact: true })).toHaveCount(
     0,
   );
-  await tab(page, "Configurações de pessoal");
+  await tab(page, "Atendimento e pessoal");
   await page
     .getByRole("button", { name: "Adicionar configuração da folha" })
     .click();
@@ -160,7 +160,7 @@ test("CPF, telefones e configurações de pessoal persistem sem exigir parâmetr
   await expect(page.getByLabel("CPF", { exact: true })).toHaveValue(
     "529.982.247-25",
   );
-  await tab(page, "Configurações de pessoal");
+  await tab(page, "Atendimento e pessoal");
   await expect(
     page.getByLabel("Participantes até 5 salários mínimos"),
   ).toHaveValue("24");
@@ -206,13 +206,13 @@ test("Cadastro antigo mantém os telefones e campos de endereço/cartório ao ed
   await page
     .getByRole("button", { name: "Abrir cadastro", exact: true })
     .click();
-  await tab(page, "Endereço e contatos");
+  await tab(page, "Dados gerais");
   await expect(page.getByLabel("Número com DDD", { exact: true })).toHaveValue(
     "(65) 3322-1234",
   );
   await page.getByLabel("Andar", { exact: true }).fill("2");
   await page.getByLabel("Sala / conjunto", { exact: true }).fill("204");
-  await tab(page, "Estabelecimentos");
+  await tab(page, "Pessoas e estabelecimentos");
   await page.getByLabel("Cartório / termo").fill("Cartório Teste");
   await page.getByRole("button", { name: "Salvar rascunho" }).click();
   await expect(page.getByText("Rascunho salvo neste navegador.")).toBeVisible();

@@ -4,7 +4,7 @@ Esta entrega amplia a aplicação em desenvolvimento. Ter uma página navegável
 
 | Capacidade da documentação | Implementado e exercitável | Pendente para cobertura integral |
 |---|---|---|
-| Empresas e estabelecimentos | Cadastro em dez abas, CPF/CNPJ, máscaras, consulta pública CNPJ, CEP, telefones, histórico, anexos e parâmetros de pessoal por vigência | Catálogos oficiais e validação da disponibilidade/atualização das fontes externas |
+| Empresas e estabelecimentos | Cadastro em cinco abas agrupadas, CPF/CNPJ, máscaras, consulta pública CNPJ, CEP, telefones, histórico, anexos e parâmetros de pessoal por vigência | Catálogos oficiais e validação da disponibilidade/atualização das fontes externas |
 | Contabilidade | Plano de contas, partidas balanceadas, diário, saldo anterior, balancete, estorno, resultado preliminar e bloqueio por competência | Centros de custo, conciliação abrangente, encerramento de resultado, demonstrações oficiais, consolidação e validação CFC |
 | Escrita Fiscal | Cadastro e importação XML NF-e, preservação de original, duplicidade, conferência e integração contábil | Motor de apuração por regime/UF/município; obrigações oficiais e guias |
 | Folha de Pagamento | Empregados, vínculos, eventos manuais, soma de proventos/descontos por competência | INSS, IRRF, FGTS, férias, afastamentos, rescisão, convenções aplicadas, eSocial |

@@ -85,3 +85,8 @@ select.form-control:has(option[value=""]:checked) { color:#737373; }
 
 .workspace-module .preview-demo-links {display:none}
 @media print { .rail, header, .btn, button, .preview-demo-links {display:none!important} body, main {background:white!important} .main-pad{padding:0!important} }
+
+/* Compact company forms retain full-width controls on mobile. */
+@media (min-width:768px) {
+  .company-module .form-control { min-height:40px; padding:9px 12px; border-radius:10px; }
+}

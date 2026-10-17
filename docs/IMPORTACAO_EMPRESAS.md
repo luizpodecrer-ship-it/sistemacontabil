@@ -28,3 +28,7 @@ Instalações que já configuraram Supabase precisam aplicar também `supabase/m
 A página Empresas exibe uma tabela com Código, Razão Social, Tipo de Insc, Inscrição, Status, Data de Inativação e CNAE. Status representa a situação no escritório (por exemplo, Ativa/Inativa), independentemente da conclusão do cadastro. O CNAE preponderante é exibido somente quando informado, sem inferir o CNAE principal.
 
 Clique na razão social ou no menu de três pontos para abrir ou editar o cadastro. A busca e o filtro limitam as linhas exibidas; a tabela não possui caixas de seleção ou ações em lote. No celular, a tabela tem rolagem horizontal para preservar todas as colunas.
+
+## Organização do formulário
+
+O cadastro usa cinco abas: Dados gerais (identificação, endereço e contatos); Fiscal e atividades (CNAEs e enquadramentos); Pessoas e estabelecimentos (sócios, responsáveis e filiais); Atendimento e pessoal (serviços e parâmetros por vigência); Documentos e histórico (anexos e alterações). O resumo de erros leva à aba correspondente. Campos curtos, nomes e descrições têm larguras distintas em telas grandes; no celular os campos ficam em uma coluna. Máscaras, consultas, regras e dados existentes foram preservados.
