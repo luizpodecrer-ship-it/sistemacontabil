@@ -1,11 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
+import { readUnionFile } from "./read-file";
+import { FileSpreadsheet, Upload } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Data } from "../workspace/model";
 import { mutateData } from "../workspace/storage";
 import {
   importFields,
-  parseCsv,
+  detectImportStart,
   suggestMapping,
-  validateWorkbook,
   planUnionImport,
   commitUnionPlan,
   type Workbook,
@@ -33,6 +34,8 @@ export function UnionImport({
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [done, setDone] = useState("");
+  const controller = useRef<AbortController | undefined>(undefined);
+  useEffect(() => () => controller.current?.abort(), []);
   useEffect(() => {
     onDirty(!!book && !done);
     return () => onDirty(false);
@@ -53,65 +56,35 @@ export function UnionImport({
     }
   }, [book, sheet, header, mapping, fileName, date, data]);
   async function read(file?: File) {
+    if (!file) return;
+    controller.current?.abort();
+    const current = new AbortController();
+    controller.current = current;
     setBook(undefined);
+    setFileName(file.name);
     setDate("");
     setDone("");
     setError("");
     setAck(false);
-    if (!file) return;
-    const csv = /\.csv$/i.test(file.name);
-    if (file.size > (csv ? 20 : 4) * 1024 * 1024) {
-      setError(
-        csv
-          ? "CSV deve ter até 20 MB."
-          : "Excel deve ter até 4 MB. Exporte CSV para arquivos maiores.",
-      );
-      return;
-    }
     setBusy(true);
     try {
-      let value: Workbook;
-      if (csv) {
-        const bytes = await file.arrayBuffer();
-        let text;
-        try {
-          text = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
-        } catch {
-          text = new TextDecoder("windows-1252").decode(bytes);
-        }
-        const digest = await crypto.subtle.digest("SHA-256", bytes);
-        value = {
-          sheets: [{ name: "CSV", rows: parseCsv(text) }],
-          sha256: [...new Uint8Array(digest)]
-            .map((b) => b.toString(16).padStart(2, "0"))
-            .join(""),
-        };
-      } else {
-        const response = await fetch("/api/union_import", {
-          method: "POST",
-          headers: { "Content-Type": "application/octet-stream" },
-          body: file,
-        });
-        const parsed = await response.json();
-        if (!response.ok || parsed.error)
-          throw new Error(
-            parsed.error || "Não foi possível ler o Excel. Use CSV.",
-          );
-        value = parsed;
-      }
-      value = validateWorkbook(value);
+      const value = await readUnionFile(file, current.signal);
+      if (current.signal.aborted) return;
+      const start = detectImportStart(value);
       setBook(value);
-      setFileName(file.name);
-      setSheet(0);
-      setHeader(0);
-      setMapping(suggestMapping(value.sheets[0].rows[0] || []));
-    } catch (e) {
-      setError(
-        (e as Error).message ||
-          "Não foi possível ler o arquivo. Tente exportar CSV.",
-      );
+      setSheet(start.sheet);
+      setHeader(start.header);
+      setMapping(start.mapping);
+    } catch (error) {
+      if (!current.signal.aborted)
+        setError(
+          error instanceof Error
+            ? error.message
+            : "Não foi possível ler a planilha.",
+        );
     } finally {
-      setBusy(false);
+      if (controller.current === current && !current.signal.aborted)
+        setBusy(false);
     }
   }
   async function save() {
@@ -151,23 +124,44 @@ export function UnionImport({
         </button>
       </div>
       <p className="text-xs text-neutral-500">
-        Selecione o Excel XLS/XLSX baixado do CNES ou uma exportação CSV.
-        Confira a aba, o cabeçalho e a correspondência das colunas antes de
-        gravar. Cadastros existentes não serão sobrescritos. Excel é convertido
-        pelo servidor do aplicativo, sem armazenar o arquivo; CSV é lido neste
-        navegador.
+        1. Selecione a planilha. 2. Confira a data, as colunas e a prévia. 3.
+        Confirme a importação para cadastrar os sindicatos. Excel XLS, XLSX,
+        exportações HTML/XML e CSV são aceitos, até 20 MB. Cadastros existentes
+        serão preservados.
       </p>
-      <label className="block text-xs font-semibold">
-        Arquivo CNES
-        <input
-          aria-label="Arquivo CNES"
-          className="mt-2 block w-full text-xs"
-          type="file"
-          accept=".xls,.xlsx,.csv"
-          disabled={busy}
-          onChange={(e) => void read(e.target.files?.[0])}
-        />
-      </label>
+      <div className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-5">
+        <label
+          className={`relative inline-flex items-center gap-2 overflow-hidden rounded-lg border border-neutral-300 bg-white px-4 py-3 text-sm font-semibold ${busy ? "opacity-50" : "cursor-pointer hover:bg-neutral-100"}`}
+        >
+          <Upload className="h-4 w-4" />{" "}
+          {busy ? "Lendo planilha…" : "Selecionar planilha Excel"}
+          <input
+            aria-label="Arquivo CNES"
+            className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+            type="file"
+            accept=".xls,.xlsx,.csv,.xml,.html,.htm,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv"
+            disabled={busy}
+            onChange={(event) => {
+              const input = event.currentTarget;
+              const file = input.files?.[0];
+              void read(file).finally(() => {
+                input.value = "";
+              });
+            }}
+          />
+        </label>
+        <p className="mt-3 flex items-center gap-2 break-all text-xs text-neutral-500">
+          <FileSpreadsheet className="h-4 w-4 shrink-0" />
+          {fileName ||
+            "Nenhuma planilha selecionada. Clique no botão acima para escolher o arquivo."}
+        </p>
+        {book && (
+          <p role="status" className="mt-2 text-xs text-emerald-700">
+            Planilha lida: {book.sheets.length} aba(s). Confira os dados abaixo
+            para concluir o cadastro.
+          </p>
+        )}
+      </div>
       {busy && (
         <p role="status" className="text-xs">
           Processando arquivo…
@@ -216,7 +210,7 @@ export function UnionImport({
               </select>
             </label>
             <label className="text-xs">
-              Data de referência do arquivo
+              Data de referência do arquivo (obrigatória)
               <input
                 type="date"
                 aria-label="Data de referência do arquivo"
@@ -226,7 +220,10 @@ export function UnionImport({
               />
             </label>
           </div>
-          <details open className="rounded-xl border border-neutral-200 p-4">
+          <details
+            open={Number(mapping.cnpj) < 0 || Number(mapping.title) < 0}
+            className="rounded-xl border border-neutral-200 p-4"
+          >
             <summary className="cursor-pointer text-sm font-semibold">
               Correspondência das colunas
             </summary>

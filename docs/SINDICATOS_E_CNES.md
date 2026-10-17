@@ -24,8 +24,8 @@ São atalhos para as ferramentas externas; o Nexopen não contorna autenticaçã
 ## Importar o arquivo obtido no CNES
 
 1. Abra **Consultar CNES** ou **Portal do MTE e base de dados**. Faça a consulta ou obtenha a planilha na ferramenta oficial.
-2. No Nexopen, clique em **Importar CNES** e selecione XLS, XLSX ou CSV.
-3. Confira aba e linha de cabeçalho. A aplicação sugere nomes de colunas comuns, mas permite ajustar a correspondência. **CNPJ e Denominação** são obrigatórios. O leiaute oficial vigente não é presumido.
+2. No Nexopen, clique em **Importar CNES** e clique em **Selecionar planilha Excel** e escolha XLS, XLSX ou CSV. Exportações HTML/XML salvas como `.xls` também são reconhecidas.
+3. A aba e o cabeçalho são procurados automaticamente nas primeiras 25 linhas de cada aba. Confira os campos identificados; a correspondência das colunas continua ajustável. **CNPJ e Denominação** são obrigatórios. O leiaute oficial vigente não é presumido.
 4. Informe a **data de referência do arquivo**. Confira a prévia dos novos registros e as linhas separadas para revisão.
 5. Confirme origem/revisão e clique em **Importar N sindicatos**.
 
@@ -37,25 +37,22 @@ Há um **Modelo CSV** com cabeçalho para organizar uma exportação. Ele é um 
 
 ## Limites e segurança da leitura
 
-- XLS/XLSX: até 4 MB de arquivo e de resposta convertida, para compatibilidade com a função hospedada. Arquivos maiores devem ser exportados como CSV.
-- CSV: até 20 MB, lido no navegador, UTF-8 ou Windows-1252, com vírgula, ponto e vírgula ou tabulação.
-- Até 12 abas, 50.000 linhas de dados, 80 colunas e 1,2 milhão de células. Os registros operacionais do escritório têm limite total de 50.000 itens. Essas condições podem exigir selecionar uma parte da base antes da importação.
-- XLS/XLSX são enviados somente ao leitor do próprio aplicativo. A leitura é em memória, sem logs do conteúdo e sem executar macros. XLSX usa XML protegido, limites de descompressão e não segue links externos. Fórmulas/erros em XLSX são sinalizados para revisão, não calculados. O XLS binário usa os valores armazenados, sem recalcular fórmulas.
-- CSV não executa fórmulas; prévias são renderizadas como texto. A importação não busca nem envia registros ao CNES.
+- Excel e CSV: até **20 MB** de arquivo. A leitura atual é feita no navegador, sem enviar a planilha à função Python ou depender dos limites da Vercel para upload/conversão.
+- Excel é processado em um **Web Worker**, mantendo a tela responsiva e com prazo máximo de 45 segundos. O leitor reconhece XLS binário, XLSX, HTML e XML Spreadsheet 2003 exportados como XLS. Páginas de login/erro sem tabela não são aceitas como Excel.
+- XLSX: até 64 MB de dados descompactados e 2.000 componentes. Arquivos protegidos ou excessivos são recusados antes da leitura completa. Macros, scripts HTML, links externos e fórmulas não são executados. Fórmulas/erros são sinalizados para revisão.
+- Até 12 abas, 50.000 linhas de dados, 80 colunas e 1,2 milhão de células. O limite total de registros operacionais do escritório continua em 50.000 itens.
+- CSV: UTF-8 ou Windows-1252, com vírgula, ponto e vírgula ou tabulação. Linhas vazias são preservadas para a numeração de revisão.
+- A seleção mostra nome do arquivo e resultado da leitura. É possível corrigir um arquivo e selecioná-lo novamente com o mesmo nome. Leituras pendentes são canceladas ao sair da tela.
 
 O catálogo usa o estado operacional existente: IndexedDB na demonstração ou Supabase isolado por escritório quando configurado. Não há nova migração SQL. Backup e trilha de operações incluem os cadastros. A integração com um Supabase de produção e a publicação efetiva na Vercel devem ser validadas na instalação; os testes locais usam dados sintéticos.
 
 ## Desenvolvimento
 
-Para a leitura de Excel local, além das dependências Node:
+A interface atual não precisa de Python para importar sindicatos. O leitor é `@e965/xlsx` 0.20.3 (SheetJS CE, distribuição npm, Apache-2.0), fixado no lockfile, executado localmente no worker. A licença está em `public/vendor/sheetjs-license.txt`.
 
-```bash
-python3 -m venv .venv
-.venv/bin/python -m pip install -r requirements.txt
-npm run dev
-```
+A API Python `/api/union_import` e o adaptador Vite anteriores foram mantidos para compatibilidade com versões anteriores, com seus limites de 4 MB; a interface atual não chama essa API. Dependências Python continuam necessárias para essa API legada e para a importação antiga de empresas.
 
-O Vite usa `.venv/bin/python` quando disponível e aceita `NEXO_PYTHON` para outro executável. Tanto desenvolvimento quanto `npm run preview` oferecem `/api/union_import`. Na Vercel, a função Python usa `requirements.txt`. O HTML independente permite CSV; Excel exige o aplicativo servido com a API.
+Validação desta correção: testes unitários do leitor e testes de navegador Chromium com seleção real de arquivo, API desabilitada, salvamento e reimportação. Não foi possível instalar WebKit neste ambiente: os downloads oficiais retornaram HTTP 403. Portanto, não se afirma uma validação direta no Safari. O controle de arquivo é um input nativo sobre o botão visível, sem abertura por efeito assíncrono.
 
 Verificações:
 

@@ -89,4 +89,4 @@ No menu lateral, **Cargos** fica abaixo de **Visão geral**. Cadastre cargos com
 
 ## Sindicatos
 
-**Sindicatos** aparece abaixo de **Empresas**, com catálogo do escritório, cadastro/edição, máscaras, CEP, filtros e importação XLS/XLSX/CSV com revisão e proteção contra duplicidade. A base oficial não foi baixada: o acesso ao CNES está bloqueado neste ambiente. Fluxo de importação, fontes, limites e dependências Python: [SINDICATOS_E_CNES.md](docs/SINDICATOS_E_CNES.md).
+**Sindicatos** aparece abaixo de **Empresas**, com catálogo do escritório, cadastro/edição, máscaras, CEP, filtros e importação XLS/XLSX/CSV com revisão e proteção contra duplicidade. A leitura do Excel ocorre no navegador, incluindo exportações HTML/XML com extensão XLS, até 20 MB, sem depender da API Python. A base oficial não foi baixada: o acesso ao CNES está bloqueado neste ambiente. Fluxo de importação, fontes, limites e compatibilidade: [SINDICATOS_E_CNES.md](docs/SINDICATOS_E_CNES.md).

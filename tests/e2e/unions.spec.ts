@@ -124,9 +124,14 @@ test("Sindicatos abaixo de Empresas: cadastro, máscaras, CEP, duplicidade, edi�
     ),
   ).toBe(true);
 });
-test("CNES Excel real: conversão local, mapeamento, revisão de duplicados e reimportação", async ({
+test("CNES Excel real: leitura no navegador, mapeamento, revisão de duplicados e reimportação", async ({
   page,
 }) => {
+  const conversionRequests: string[] = [];
+  await page.route("**/api/union_import", (route) => {
+    conversionRequests.push(route.request().url());
+    return route.abort();
+  });
   await enter(page);
   await page
     .getByRole("button", { name: "Importar CNES", exact: true })
@@ -176,10 +181,102 @@ test("CNES Excel real: conversão local, mapeamento, revisão de duplicados e re
   await expect(
     page.getByRole("button", { name: "Importar 0 sindicatos", exact: true }),
   ).toBeDisabled();
+  expect(conversionRequests).toHaveLength(0);
   await page.setViewportSize({ width: 390, height: 844 });
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBe(true);
+});
+
+for (const format of ["binary", "html", "xml"] as const) {
+  test(`Excel ${format}: seletor de arquivo abre e sindicatos são cadastrados sem API`, async ({
+    page,
+  }) => {
+    const conversions: string[] = [];
+    await page.route("**/api/union_import", (route) => {
+      conversions.push(route.request().url());
+      return route.fulfill({ status: 503, body: "Servidor indisponível" });
+    });
+    await enter(page);
+    await page
+      .getByRole("button", { name: "Importar CNES", exact: true })
+      .click();
+    const html =
+      '<html><head><meta charset="utf-8"></head><body><script>window.executedImport=true</script><table><tr><th>CNPJ</th><th>Denominação</th><th>UF</th></tr><tr><td>04252011000110</td><td>Sindicato HTML Fictício</td><td>MT</td></tr></table></body></html>';
+    const xml =
+      '<?xml version="1.0"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"><Worksheet ss:Name="CNES"><Table><Row><Cell><Data ss:Type="String">CNPJ</Data></Cell><Cell><Data ss:Type="String">Denominação</Data></Cell></Row><Row><Cell><Data ss:Type="String">04252011000110</Data></Cell><Cell><Data ss:Type="String">Sindicato XML Fictício</Data></Cell></Row></Table></Worksheet></Workbook>';
+    const chooserPromise = page.waitForEvent("filechooser");
+    await page.getByText("Selecionar planilha Excel", { exact: true }).click();
+    const chooser = await chooserPromise;
+    await chooser.setFiles(
+      format === "binary"
+        ? "tests/fixtures/union-legacy.xls"
+        : {
+            name: `sindicatos-${format}.xls`,
+            mimeType: "application/vnd.ms-excel",
+            buffer: Buffer.from(format === "html" ? html : xml),
+          },
+    );
+    await expect(
+      page.getByRole("status").filter({ hasText: "Planilha lida:" }),
+    ).toBeVisible();
+    await expect(
+      page.getByLabel("Linha do cabeçalho CNES", { exact: true }),
+    ).toHaveValue(format === "binary" ? "2" : "0");
+    await page
+      .getByLabel("Data de referência do arquivo", { exact: true })
+      .fill("2026-01-01");
+    await page
+      .getByLabel("Confirmar origem e revisão CNES", { exact: true })
+      .check();
+    await page
+      .getByRole("button", { name: "Importar 1 sindicatos", exact: true })
+      .click();
+    await expect(
+      page.getByText(/Importação concluída: 1 novos sindicatos/),
+    ).toBeVisible();
+    await page
+      .getByRole("button", { name: "Fechar importação", exact: true })
+      .click();
+    await expect(
+      page.getByRole("cell", { name: "04.252.011/0001-10", exact: true }),
+    ).toBeVisible();
+    expect(conversions).toHaveLength(0);
+    expect(await page.evaluate(() => !!(window as any).executedImport)).toBe(
+      false,
+    );
+  });
+}
+test("Arquivo inválido explica o problema e permite selecionar novamente o mesmo nome", async ({
+  page,
+}) => {
+  await enter(page);
+  await page
+    .getByRole("button", { name: "Importar CNES", exact: true })
+    .click();
+  await page
+    .getByLabel("Arquivo CNES", { exact: true })
+    .setInputFiles({
+      name: "cnes.xls",
+      mimeType: "application/vnd.ms-excel",
+      buffer: Buffer.from("<html>Login necessário</html>"),
+    });
+  await expect(page.getByRole("alert")).toContainText(
+    "não contém uma tabela Excel",
+  );
+  const html =
+    "<table><tr><th>CNPJ</th><th>Denominação</th></tr><tr><td>04252011000110</td><td>Sindicato de teste</td></tr></table>";
+  await page
+    .getByLabel("Arquivo CNES", { exact: true })
+    .setInputFiles({
+      name: "cnes.xls",
+      mimeType: "application/vnd.ms-excel",
+      buffer: Buffer.from(html),
+    });
+  await expect(
+    page.getByRole("status").filter({ hasText: "Planilha lida:" }),
+  ).toBeVisible();
+  await expect(page.getByRole("alert")).toHaveCount(0);
 });

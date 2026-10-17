@@ -12,10 +12,21 @@ const aliases: Record<string, string[]> = {
     "razaosocial",
     "nomeentidade",
     "denominacaodaentidade",
+    "denominacaosocial",
+    "denominacaosindical",
+    "nomedaentidade",
+    "nomeentidadesindical",
+    "razaosocialdaentidade",
     "nome",
     "entidade",
   ],
-  cnpj: ["cnpj", "cnpjentidade", "cnpjdaentidade"],
+  cnpj: [
+    "cnpj",
+    "cnpjentidade",
+    "cnpjdaentidade",
+    "cnpjentidadesindical",
+    "cnpjdaentidadesindical",
+  ],
   sigla: ["sigla"],
   entityType: ["tipoentidade", "grau", "tipodeentidade"],
   representation: ["representacao", "grupo", "classificacao"],
@@ -299,4 +310,22 @@ export function commitUnionPlan(data: Data, plan: Plan) {
       `${inserted} novos; ${skipped} já existentes preservados.`,
     );
   return { inserted, skipped };
+}
+
+export function detectImportStart(book: Workbook) {
+  for (let sheet = 0; sheet < book.sheets.length; sheet++)
+    for (
+      let header = 0;
+      header < Math.min(book.sheets[sheet].rows.length, 25);
+      header++
+    ) {
+      const mapping = suggestMapping(book.sheets[sheet].rows[header]);
+      if (Number(mapping.cnpj) >= 0 && Number(mapping.title) >= 0)
+        return { sheet, header, mapping };
+    }
+  return {
+    sheet: 0,
+    header: 0,
+    mapping: suggestMapping(book.sheets[0].rows[0] || []),
+  };
 }
