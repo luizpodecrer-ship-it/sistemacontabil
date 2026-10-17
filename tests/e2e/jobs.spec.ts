@@ -1,3 +1,4 @@
+import { selectOption } from "./select-helper";
 import { test, expect, type Page } from "@playwright/test";
 async function createCompany(page: Page, name: string, cnpj: string) {
   await page.getByRole("button", { name: "Empresas", exact: true }).click();
@@ -102,13 +103,15 @@ test("Catálogo compartilhado: catálogo CBO, validação, salários, requisitos
     page.getByRole("cell", { name: "Porteiro da recepção", exact: true }),
   ).toBeVisible();
   await page.getByLabel("Buscar cargos", { exact: true }).fill("");
-  await page.getByRole("button", { name: "Dashboard", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Processos e tarefas", exact: true })
+    .click();
   await expect(
     page.getByRole("tab", { name: "Cargos", exact: true }),
   ).toHaveCount(0);
-  await page
-    .getByLabel("Empresa em contexto", { exact: true })
-    .selectOption({ label: "Empresa Cargos B" });
+  await selectOption(page.getByLabel("Empresa em contexto", { exact: true }), {
+    label: "Empresa Cargos B",
+  });
   await openJobs(page);
   await expect(
     page.getByRole("cell", { name: "Porteiro da recepção", exact: true }),
@@ -131,11 +134,12 @@ test("Catálogo compartilhado: catálogo CBO, validação, salários, requisitos
   await expect(page.getByLabel("Requisito 1", { exact: true })).toHaveValue(
     "Ensino médio completo",
   );
-  await page.getByLabel("Status", { exact: true }).selectOption("Inativo");
+  await selectOption(page.getByLabel("Status", { exact: true }), "Inativo");
   await page.getByRole("button", { name: "Salvar cargo", exact: true }).click();
-  await page
-    .getByLabel("Filtrar status dos cargos", { exact: true })
-    .selectOption("Ativo");
+  await selectOption(
+    page.getByLabel("Filtrar status dos cargos", { exact: true }),
+    "Ativo",
+  );
   await expect(
     page.getByText("Nenhum cargo encontrado.", { exact: true }),
   ).toBeVisible();
@@ -150,6 +154,7 @@ test("Catálogo compartilhado: catálogo CBO, validação, salários, requisitos
   await expect(
     page.getByRole("cell", { name: "Inativo", exact: true }),
   ).toBeVisible();
+  await page.keyboard.press("Escape");
   await page.setViewportSize({ width: 390, height: 844 });
   expect(
     await page.evaluate(
@@ -170,8 +175,8 @@ test("Catálogo compartilhado: catálogo CBO, validação, salários, requisitos
   await page
     .getByRole("button", { name: "Consultar base CBO", exact: true })
     .click();
-  await page.getByLabel("Grande grupo CBO", { exact: true }).selectOption("7");
-  await page.getByLabel("Família CBO", { exact: true }).selectOption("7151");
+  await selectOption(page.getByLabel("Grande grupo CBO", { exact: true }), "7");
+  await selectOption(page.getByLabel("Família CBO", { exact: true }), "7151");
   await page
     .getByLabel("Buscar ocupação CBO", { exact: true })
     .fill("maquinas");
@@ -343,20 +348,35 @@ test("Cargos ficam abaixo de Dashboard e são selecionados no colaborador pelo s
     .getByRole("button", { name: "Contrato e remuneração", exact: true })
     .click();
   const role = page.getByLabel("Cargo", { exact: true });
-  await expect(role.locator('option[value="obras"]')).toHaveCount(1);
-  await expect(role.locator('option[value="comum"]')).toHaveCount(1);
-  await expect(role.locator('option[value="vendas"]')).toHaveCount(0);
-  await expect(role.locator('option[value="inativo"]')).toHaveCount(0);
-  await role.selectOption("obras");
+  await role.click();
+  await expect(
+    page.getByRole("listbox").locator('[data-value="obras"]'),
+  ).toHaveCount(1);
+  await expect(
+    page.getByRole("listbox").locator('[data-value="comum"]'),
+  ).toHaveCount(1);
+  await expect(
+    page.getByRole("listbox").locator('[data-value="vendas"]'),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("listbox").locator('[data-value="inativo"]'),
+  ).toHaveCount(0);
+  await page.keyboard.press("Escape");
+  await selectOption(role, "obras");
   await expect(page.getByLabel("CBO", { exact: true })).toHaveValue("7151-25");
   await expect(page.getByLabel("CBO", { exact: true })).toHaveAttribute(
     "readonly",
     "",
   );
-  await page
-    .getByLabel("Filtrar cargos por segmento", { exact: true })
-    .selectOption("all");
-  await expect(role.locator('option[value="vendas"]')).toHaveCount(1);
+  await selectOption(
+    page.getByLabel("Filtrar cargos por segmento", { exact: true }),
+    "all",
+  );
+  await role.click();
+  await expect(
+    page.getByRole("listbox").locator('[data-value="vendas"]'),
+  ).toHaveCount(1);
+  await page.keyboard.press("Escape");
   await page
     .getByRole("button", {
       name: "Salvar rascunho do colaborador",
@@ -373,7 +393,7 @@ test("Cargos ficam abaixo de Dashboard e são selecionados no colaborador pelo s
       exact: true,
     })
     .click();
-  await page.getByLabel("Status", { exact: true }).selectOption("Inativo");
+  await selectOption(page.getByLabel("Status", { exact: true }), "Inativo");
   await page.getByRole("button", { name: "Salvar cargo", exact: true }).click();
   await openCompany("Construtora Teste");
   await page
@@ -382,7 +402,10 @@ test("Cargos ficam abaixo de Dashboard e são selecionados no colaborador pelo s
   await page
     .getByRole("button", { name: "Contrato e remuneração", exact: true })
     .click();
-  await expect(page.getByLabel("Cargo", { exact: true })).toHaveValue("obras");
+  await expect(page.getByLabel("Cargo", { exact: true })).toHaveAttribute(
+    "value",
+    "obras",
+  );
   await expect(page.getByLabel("CBO", { exact: true })).toHaveValue("7151-25");
   await page
     .getByRole("button", {
@@ -400,12 +423,14 @@ test("Cargos ficam abaixo de Dashboard e são selecionados no colaborador pelo s
   await page
     .getByRole("button", { name: "Contrato e remuneração", exact: true })
     .click();
+  await page.getByLabel("Cargo", { exact: true }).click();
   await expect(
-    page.getByLabel("Cargo", { exact: true }).locator('option[value="vendas"]'),
+    page.getByRole("listbox").locator('[data-value="vendas"]'),
   ).toHaveCount(1);
   await expect(
-    page.getByLabel("Cargo", { exact: true }).locator('option[value="obras"]'),
+    page.getByRole("listbox").locator('[data-value="obras"]'),
   ).toHaveCount(0);
+  await page.keyboard.press("Escape");
   await page.setViewportSize({ width: 390, height: 844 });
   expect(
     await page.evaluate(

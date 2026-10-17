@@ -1,7 +1,10 @@
+import { selectOption } from "./select-helper";
 import { test, expect, type Page } from "@playwright/test";
 async function enter(page: Page) {
   await page.goto("/");
-  await expect(page.getByRole("button", { name: /Continuar com Google/i })).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: /Continuar com Google/i }),
+  ).toHaveCount(0);
   await expect(page.getByText("OU", { exact: true })).toHaveCount(0);
   await page
     .getByRole("button", { name: "Explorar a prévia", exact: true })
@@ -50,9 +53,10 @@ test("Sindicatos abaixo de Empresas: cadastro, máscaras, CEP, duplicidade, edi�
   await expect(page.getByLabel("CNPJ", { exact: true })).toHaveValue(
     "11.444.777/0001-61",
   );
-  await page
-    .getByLabel("Representação", { exact: true })
-    .selectOption("Laboral");
+  await selectOption(
+    page.getByLabel("Representação", { exact: true }),
+    "Laboral",
+  );
   await page
     .getByLabel("Telefone com DDD", { exact: true })
     .fill("11999991234");
@@ -69,7 +73,8 @@ test("Sindicatos abaixo de Empresas: cadastro, máscaras, CEP, duplicidade, edi�
   await expect(page.getByLabel("Logradouro", { exact: true })).toHaveValue(
     "Rua Teste",
   );
-  await expect(page.getByLabel("UF da sede", { exact: true })).toHaveValue(
+  await expect(page.getByLabel("UF da sede", { exact: true })).toHaveAttribute(
+    "value",
     "MT",
   );
   await page
@@ -107,9 +112,10 @@ test("Sindicatos abaixo de Empresas: cadastro, máscaras, CEP, duplicidade, edi�
   await expect(
     page.getByLabel("Telefone com DDD", { exact: true }),
   ).toHaveValue("(11) 99999-1234");
-  await page
-    .getByLabel("Situação interna", { exact: true })
-    .selectOption("Inativo");
+  await selectOption(
+    page.getByLabel("Situação interna", { exact: true }),
+    "Inativo",
+  );
   await page
     .getByRole("button", { name: "Salvar sindicato", exact: true })
     .click();
@@ -143,7 +149,10 @@ test("CNES Excel real: leitura no navegador, mapeamento, revisão de duplicados 
   await page
     .getByLabel("Arquivo CNES", { exact: true })
     .setInputFiles("tests/fixtures/union-import.xlsx");
-  await expect(page.getByLabel("Aba CNES", { exact: true })).toHaveValue("0");
+  await expect(page.getByLabel("Aba CNES", { exact: true })).toHaveAttribute(
+    "value",
+    "0",
+  );
   await expect(
     page
       .getByRole("status")
@@ -164,7 +173,10 @@ test("CNES Excel real: leitura no navegador, mapeamento, revisão de duplicados 
   await page
     .getByLabel("Arquivo CNES", { exact: true })
     .setInputFiles("tests/fixtures/union-import.xlsx");
-  await expect(page.getByLabel("Aba CNES", { exact: true })).toHaveValue("0");
+  await expect(page.getByLabel("Aba CNES", { exact: true })).toHaveAttribute(
+    "value",
+    "0",
+  );
   await expect(
     page
       .getByRole("status")
@@ -216,7 +228,7 @@ for (const format of ["binary", "html", "xml"] as const) {
     ).toBeVisible();
     await expect(
       page.getByLabel("Linha do cabeçalho CNES", { exact: true }),
-    ).toHaveValue(format === "binary" ? "2" : "0");
+    ).toHaveAttribute("value", format === "binary" ? "2" : "0");
     await page
       .getByRole("button", { name: "Cadastrar 1 sindicatos", exact: true })
       .click();

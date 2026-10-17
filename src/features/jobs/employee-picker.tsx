@@ -1,3 +1,4 @@
+import { Select } from "@/components/ui/select";
 import { useState } from "react";
 import type { Company } from "../companies/model";
 import type { Item, Values } from "../workspace/model";
@@ -66,7 +67,7 @@ export function EmployeeJobPicker({
         </label>
         <label className="text-xs font-semibold">
           Filtrar por segmento
-          <select
+          <Select
             aria-label="Filtrar cargos por segmento"
             className="form-control mt-1.5"
             value={segment}
@@ -79,11 +80,11 @@ export function EmployeeJobPicker({
                 {s.label}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
         <label className="text-xs font-semibold">
           Cargo <span className="text-neutral-400">*</span>
-          <select
+          <Select
             aria-label="Cargo"
             aria-required="true"
             aria-invalid={!!error}
@@ -114,7 +115,7 @@ export function EmployeeJobPicker({
                 {formatCbo(job.values.cbo)}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
         <label className="text-xs font-semibold">
           CBO

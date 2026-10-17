@@ -1,3 +1,4 @@
+import { Select } from "@/components/ui/select";
 import { useEffect, useRef, useState } from "react";
 import { Search, X, ChevronLeft, ChevronRight } from "lucide-react";
 import {
@@ -123,7 +124,7 @@ export function CboPicker({
           </label>
           <label className="text-xs font-medium">
             Grande grupo
-            <select
+            <Select
               aria-label="Grande grupo CBO"
               className="form-control mt-1"
               value={group}
@@ -139,11 +140,11 @@ export function CboPicker({
                   {i} · {name}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
           <label className="text-xs font-medium">
             Família ocupacional
-            <select
+            <Select
               aria-label="Família CBO"
               className="form-control mt-1"
               value={family}
@@ -160,7 +161,7 @@ export function CboPicker({
                   {code} · {families[code] || `Família ${code}`}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
         </div>
         <div className="mb-3 flex flex-wrap items-center justify-between gap-3 text-xs text-neutral-500">
@@ -169,7 +170,7 @@ export function CboPicker({
           </p>
           <label>
             Ordenar por{" "}
-            <select
+            <Select
               aria-label="Ordenar CBO"
               className="rounded border border-neutral-200 p-2 text-neutral-700"
               value={order}
@@ -180,7 +181,7 @@ export function CboPicker({
             >
               <option value="code">Código</option>
               <option value="title">Descrição</option>
-            </select>
+            </Select>
           </label>
         </div>
         <div className="relative overflow-x-auto rounded-xl border border-neutral-200">

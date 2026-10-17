@@ -1,3 +1,4 @@
+import { Select } from "@/components/ui/select";
 import { cloudConfigured } from "../../backend/client";
 import { createRoot, type Root } from "react-dom/client";
 import { useEffect, useRef, useState } from "react";
@@ -866,7 +867,7 @@ function CompanyApp() {
               onChange={(e) => setQuery(e.target.value)}
             />
           </div>
-          <select
+          <Select
             className="form-control !w-auto"
             aria-label="Filtrar empresas por status"
             value={filter}
@@ -884,7 +885,7 @@ function CompanyApp() {
             ].map((s) => (
               <option key={s}>{s}</option>
             ))}
-          </select>
+          </Select>
         </div>
         <p className="text-xs text-neutral-400 mb-4">
           {rows.length} empresa(s) encontrada(s)

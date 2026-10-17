@@ -1,3 +1,4 @@
+import { selectOption } from "./select-helper";
 import { test, expect } from "@playwright/test";
 async function enter(page: any) {
   await page.goto("/");
@@ -47,9 +48,10 @@ test("Colaboradores por empresa: CTPS derivada do CPF, dependentes, persistênci
   await page
     .getByRole("button", { name: "Documentos e pagamento", exact: true })
     .click();
-  await page
-    .getByLabel("Tipo de carteira de trabalho", { exact: true })
-    .selectOption("Digital");
+  await selectOption(
+    page.getByLabel("Tipo de carteira de trabalho", { exact: true }),
+    "Digital",
+  );
   await expect(
     page.getByLabel("Número da Carteira Digital", { exact: true }),
   ).toHaveValue("529.982.247-25");
@@ -68,16 +70,18 @@ test("Colaboradores por empresa: CTPS derivada do CPF, dependentes, persistênci
     page.getByLabel("Número da Carteira Digital", { exact: true }),
   ).toHaveValue("");
   await page.getByLabel("CPF", { exact: true }).fill("52998224725");
-  await page
-    .getByLabel("Tipo de carteira de trabalho", { exact: true })
-    .selectOption("Papel");
+  await selectOption(
+    page.getByLabel("Tipo de carteira de trabalho", { exact: true }),
+    "Papel",
+  );
   await page
     .getByLabel("Número da CTPS em papel", { exact: true })
     .fill("00123");
   await page.getByLabel("Série da CTPS em papel", { exact: true }).fill("005");
-  await page
-    .getByLabel("Tipo de carteira de trabalho", { exact: true })
-    .selectOption("Digital");
+  await selectOption(
+    page.getByLabel("Tipo de carteira de trabalho", { exact: true }),
+    "Digital",
+  );
   await page.getByLabel("CEP", { exact: true }).fill("78005000");
   await expect(page.getByLabel("Logradouro", { exact: true })).toHaveValue(
     "Rua de teste",
@@ -122,9 +126,10 @@ test("Colaboradores por empresa: CTPS derivada do CPF, dependentes, persistênci
   await expect(
     page.getByLabel("Número da Carteira Digital", { exact: true }),
   ).toHaveValue("529.982.247-25");
-  await page
-    .getByLabel("Tipo de carteira de trabalho", { exact: true })
-    .selectOption("Papel");
+  await selectOption(
+    page.getByLabel("Tipo de carteira de trabalho", { exact: true }),
+    "Papel",
+  );
   await expect(
     page.getByLabel("Número da CTPS em papel", { exact: true }),
   ).toHaveValue("00123");
@@ -148,9 +153,9 @@ test("Colaboradores por empresa: CTPS derivada do CPF, dependentes, persistênci
   await page
     .getByRole("button", { name: "Pessoal e vínculos", exact: true })
     .click();
-  await page
-    .getByLabel("Empresa em contexto", { exact: true })
-    .selectOption({ label: "Empresa A Teste" });
+  await selectOption(page.getByLabel("Empresa em contexto", { exact: true }), {
+    label: "Empresa A Teste",
+  });
   await expect(
     page.getByRole("button", { name: "Colaborador de Teste", exact: true }),
   ).toBeVisible();
@@ -231,20 +236,24 @@ test("Novo cadastro valida conclusão e permanece responsivo, sem buscar carteir
     .getByLabel("Data de nascimento", { exact: true })
     .fill("1990-01-01");
   await page.getByLabel("Admissão", { exact: true }).fill("2025-01-15");
-  await page.getByLabel("Cargo", { exact: true }).selectOption("role-analyst");
-  await page
-    .getByLabel("Tipo de vínculo", { exact: true })
-    .selectOption("Empregado");
-  await page
-    .getByLabel("Prazo do contrato", { exact: true })
-    .selectOption("Indeterminado");
-  await page
-    .getByLabel("Situação do colaborador", { exact: true })
-    .selectOption("Ativo");
+  await selectOption(page.getByLabel("Cargo", { exact: true }), "role-analyst");
+  await selectOption(
+    page.getByLabel("Tipo de vínculo", { exact: true }),
+    "Empregado",
+  );
+  await selectOption(
+    page.getByLabel("Prazo do contrato", { exact: true }),
+    "Indeterminado",
+  );
+  await selectOption(
+    page.getByLabel("Situação do colaborador", { exact: true }),
+    "Ativo",
+  );
   await page.getByLabel("Salário contratual", { exact: true }).fill("250000");
-  await page
-    .getByLabel("Tipo de salário", { exact: true })
-    .selectOption("Mensal");
+  await selectOption(
+    page.getByLabel("Tipo de salário", { exact: true }),
+    "Mensal",
+  );
   await page
     .getByLabel("Vigência do salário", { exact: true })
     .fill("2025-01-15");
@@ -260,9 +269,10 @@ test("Novo cadastro valida conclusão e permanece responsivo, sem buscar carteir
   await page
     .getByRole("button", { name: "Documentos e pagamento", exact: true })
     .click();
-  await page
-    .getByLabel("Tipo de carteira de trabalho", { exact: true })
-    .selectOption("Digital");
+  await selectOption(
+    page.getByLabel("Tipo de carteira de trabalho", { exact: true }),
+    "Digital",
+  );
   await page
     .getByRole("button", { name: "Concluir colaborador", exact: true })
     .click();

@@ -1,3 +1,4 @@
+import { Select } from "@/components/ui/select";
 import { LoginSettingsEditor, LoginPreview } from "./login-settings";
 import { createRoot, type Root } from "react-dom/client";
 import { useEffect, useRef, useState } from "react";
@@ -232,7 +233,7 @@ function Branding({
             >
               Formato do logo
             </label>
-            <select
+            <Select
               id="logo-format"
               className="form-control sm:max-w-xs"
               value={draft.logoFormat}
@@ -251,7 +252,7 @@ function Branding({
             >
               <option value="square">Quadrado · até 500 × 500 px</option>
               <option value="horizontal">Horizontal · até 500 × 250 px</option>
-            </select>
+            </Select>
           </div>
           <div>
             <p className="mb-3 text-xs font-medium">

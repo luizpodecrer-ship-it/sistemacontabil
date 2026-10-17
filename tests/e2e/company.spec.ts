@@ -1,3 +1,4 @@
+import { selectOption } from "./select-helper";
 import { test, expect, type Page } from "@playwright/test";
 test.beforeEach(async ({ page }) => {
   await page.route("https://brasilapi.com.br/api/cnpj/v1/**", (route) =>
@@ -51,10 +52,10 @@ test("Máscaras, rascunho persistido, edição e CNPJ duplicado", async ({
     "(65) 3322-1234",
   );
   await page.getByRole("button", { name: "Adicionar telefone" }).click();
-  await page
-    .getByLabel("Tipo de telefone", { exact: true })
-    .nth(1)
-    .selectOption("Celular");
+  await selectOption(
+    page.getByLabel("Tipo de telefone", { exact: true }).nth(1),
+    "Celular",
+  );
   await page
     .getByLabel("Número com DDD", { exact: true })
     .nth(1)
@@ -154,9 +155,10 @@ test("Conclusão exige as abas essenciais, guarda histórico e anexos após reca
     .fill("Atividades de contabilidade");
   await tab(page, "Fiscal e atividades");
   await page.getByRole("button", { name: "Adicionar enquadramento" }).click();
-  await page
-    .getByLabel("Regime tributário", { exact: true })
-    .selectOption("Simples Nacional");
+  await selectOption(
+    page.getByLabel("Regime tributário", { exact: true }),
+    "Simples Nacional",
+  );
   await page
     .getByLabel("Início da vigência", { exact: true })
     .fill("2026-01-01");
@@ -308,9 +310,10 @@ test("Campos repetíveis, remoção com confirmação e apagar separador de más
   await expect(page.getByLabel("CPF", { exact: true })).toHaveValue(
     "529.982.247-25",
   );
-  await page
-    .getByLabel("Tipo de pessoa", { exact: true })
-    .selectOption("Pessoa jurídica");
+  await selectOption(
+    page.getByLabel("Tipo de pessoa", { exact: true }),
+    "Pessoa jurídica",
+  );
   await expect(page.getByLabel("CNPJ", { exact: true })).toHaveValue("");
   await page
     .getByRole("button", { name: "Remover Sócios e representantes 1" })

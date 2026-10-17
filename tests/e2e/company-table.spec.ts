@@ -1,3 +1,4 @@
+import { selectOption } from "./select-helper";
 import { test, expect } from "@playwright/test";
 test("Tabela: cabeçalhos compactos, ausência de seleção, filtro, ações e celular", async ({
   page,
@@ -70,7 +71,7 @@ test("Tabela: cabeçalhos compactos, ausência de seleção, filtro, ações e c
   ).toBeVisible();
   await expect(table.getByText("Rascunho", { exact: true })).toHaveCount(0);
   await expect(table.getByRole("checkbox")).toHaveCount(0);
-  await page.getByLabel("Filtrar empresas por status").selectOption("Inativa");
+  await selectOption(page.getByLabel("Filtrar empresas por status"), "Inativa");
   await expect(table.getByRole("row")).toHaveCount(2);
   await page.getByRole("button", { name: "Ações da empresa 20" }).click();
   await expect(

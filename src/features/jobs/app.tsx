@@ -1,3 +1,4 @@
+import { Select } from "@/components/ui/select";
 import { useEffect, useState } from "react";
 import { ArrowLeft, BriefcaseBusiness, Plus, Save, Trash2 } from "lucide-react";
 import { FormField, type FieldSpec } from "@/components/ui/form-field";
@@ -495,7 +496,7 @@ export function Jobs({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
-            <select
+            <Select
               aria-label="Filtrar status dos cargos"
               className="form-control sm:!w-40"
               value={status}
@@ -504,7 +505,7 @@ export function Jobs({
               <option>Todos</option>
               <option>Ativo</option>
               <option>Inativo</option>
-            </select>
+            </Select>
           </div>
           <p className="mb-3 text-xs text-neutral-500">
             {jobs.length} cargo(s) encontrado(s)

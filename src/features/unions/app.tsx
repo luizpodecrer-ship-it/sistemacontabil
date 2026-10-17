@@ -1,3 +1,4 @@
+import { Select } from "@/components/ui/select";
 import { useEffect, useState } from "react";
 import {
   Plus,
@@ -342,7 +343,7 @@ export function Unions({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
-        <select
+        <Select
           aria-label="Filtrar sindicatos por UF"
           className="form-control min-w-0"
           value={uf}
@@ -352,8 +353,8 @@ export function Unions({
           {ufs.map((s) => (
             <option key={s}>{s}</option>
           ))}
-        </select>
-        <select
+        </Select>
+        <Select
           aria-label="Filtrar sindicatos por representação"
           className="form-control min-w-0"
           value={representation}
@@ -363,8 +364,8 @@ export function Unions({
           <option>Laboral</option>
           <option>Patronal</option>
           <option>Não informado</option>
-        </select>
-        <select
+        </Select>
+        <Select
           aria-label="Filtrar situação interna"
           className="form-control min-w-0"
           value={status}
@@ -373,7 +374,7 @@ export function Unions({
           <option value="">Todas as situações internas</option>
           <option>Ativo</option>
           <option>Inativo</option>
-        </select>
+        </Select>
       </div>
       <p className="mb-3 text-xs text-neutral-500">
         {rows.length} sindicato(s) encontrado(s)

@@ -1,3 +1,4 @@
+import { selectOption } from "./select-helper";
 import { test, expect, type Page } from "@playwright/test";
 const seed = {
   id: "company-1",
@@ -82,8 +83,8 @@ test("Jornada: tarefa impeditiva, lançamento balanceado, revisão, fechamento, 
   await nav(page, "Contabilidade");
   await page.getByRole("button", { name: "Novo lançamento" }).click();
   await page.getByLabel("Histórico", { exact: true }).fill("Capital inicial");
-  await page.getByLabel("Conta da partida 1").selectOption("cash");
-  await page.getByLabel("Conta da partida 2").selectOption("capital");
+  await selectOption(page.getByLabel("Conta da partida 1"), "cash");
+  await selectOption(page.getByLabel("Conta da partida 2"), "capital");
   await page.getByLabel("Débito", { exact: true }).nth(0).fill("10000");
   await page.getByLabel("Crédito", { exact: true }).nth(1).fill("9000");
   await page.getByRole("button", { name: "Registrar lançamento" }).click();
@@ -101,7 +102,7 @@ test("Jornada: tarefa impeditiva, lançamento balanceado, revisão, fechamento, 
   await expect(page.getByRole("status")).toContainText("impeditivas");
   await nav(page, "Processos e tarefas");
   await page.getByRole("button", { name: "Editar", exact: true }).click();
-  await page.getByLabel("Situação", { exact: true }).selectOption("Concluído");
+  await selectOption(page.getByLabel("Situação", { exact: true }), "Concluído");
   await page
     .getByLabel("Evidência / conclusão")
     .fill("Conferência documental realizada");
@@ -143,7 +144,7 @@ test("Contrato gera cobrança uma única vez, liquidação exige comprovante e f
   await expect(page.getByRole("status")).toContainText("já gerada");
   await nav(page, "Cobranças");
   await page.getByRole("button", { name: "Editar", exact: true }).click();
-  await page.getByLabel("Situação", { exact: true }).selectOption("Liquidado");
+  await selectOption(page.getByLabel("Situação", { exact: true }), "Liquidado");
   await page.getByRole("button", { name: "Salvar registro" }).click();
   await expect(page.getByRole("alert")).toContainText("evidência");
   await page.getByLabel("Data do recebimento").fill("2026-10-10");
@@ -171,9 +172,9 @@ test("Documento aprovado aparece na prévia do portal, backup contém o arquivo 
   await nav(page, "Documentos");
   await page.getByRole("button", { name: "Novo registro" }).click();
   await page.getByLabel("Título", { exact: true }).fill("Demonstrativo mensal");
-  await page.getByLabel("Tipo", { exact: true }).selectOption("Demonstrativo");
-  await page.getByLabel("Disponibilizar para").selectOption("Cliente");
-  await page.getByLabel("Situação", { exact: true }).selectOption("Aprovado");
+  await selectOption(page.getByLabel("Tipo", { exact: true }), "Demonstrativo");
+  await selectOption(page.getByLabel("Disponibilizar para"), "Cliente");
+  await selectOption(page.getByLabel("Situação", { exact: true }), "Aprovado");
   await page.getByLabel("Arquivo original").setInputFiles({
     name: "relatorio.pdf",
     mimeType: "application/pdf",
@@ -199,7 +200,7 @@ test("Documento aprovado aparece na prévia do portal, backup contém o arquivo 
   restored.once("dialog", (d) => d.accept());
   await restored.getByLabel("Restaurar backup JSON").setInputFiles(path!);
   await expect(restored.getByRole("status")).toContainText("restaurado");
-  await restored.getByLabel("Empresa em contexto").selectOption("company-1");
+  await selectOption(restored.getByLabel("Empresa em contexto"), "company-1");
   await nav(restored, "Portal do cliente");
   await expect(
     restored.getByText("Demonstrativo mensal", { exact: true }),
@@ -252,8 +253,14 @@ test("Importações OFX e NF-e preservam origem e bloqueiam duplicidade", async 
   });
   await expect(page.getByRole("status")).toContainText("já importado");
   await page.getByRole("button", { name: "Contabilizar", exact: true }).click();
-  await expect(page.getByLabel("Conta da partida 1")).toHaveValue("receivable");
-  await expect(page.getByLabel("Conta da partida 2")).toHaveValue("revenue");
+  await expect(page.getByLabel("Conta da partida 1")).toHaveAttribute(
+    "value",
+    "receivable",
+  );
+  await expect(page.getByLabel("Conta da partida 2")).toHaveAttribute(
+    "value",
+    "revenue",
+  );
   await page.getByRole("button", { name: "Registrar lançamento" }).click();
   await expect(page.getByRole("status")).toContainText("balanceadas");
 });
@@ -289,7 +296,7 @@ test("Busca global encontra registros e recorrência mensal evita duplicidade", 
   await page.getByLabel("Título", { exact: true }).fill("Revisão recorrente");
   await page.getByLabel("Responsável", { exact: true }).fill("Luiz");
   await page.getByLabel("Prazo", { exact: true }).fill("2026-10-20");
-  await page.getByLabel("Recorrência", { exact: true }).selectOption("Mensal");
+  await selectOption(page.getByLabel("Recorrência", { exact: true }), "Mensal");
   await page.getByRole("button", { name: "Salvar registro" }).click();
   await expect(page.getByRole("status")).toContainText("salvo");
   await page.getByRole("button", { name: "Gerar próximo mês" }).click();

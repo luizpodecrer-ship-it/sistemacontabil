@@ -1,3 +1,4 @@
+import { Select } from "@/components/ui/select";
 import { useRef, type InputHTMLAttributes } from "react";
 import { masks, type Mask } from "@/lib/formats";
 
@@ -61,7 +62,7 @@ export function FormField({
         )}
       </label>
       {spec.options || spec.choices ? (
-        <select {...common} onChange={(e) => onChange(e.target.value)}>
+        <Select {...common} onChange={(e) => onChange(e.target.value)}>
           <option value="">Selecione</option>
           {(
             spec.choices ||
@@ -72,7 +73,7 @@ export function FormField({
               {o.label}
             </option>
           ))}
-        </select>
+        </Select>
       ) : spec.type === "textarea" ? (
         <textarea
           {...common}

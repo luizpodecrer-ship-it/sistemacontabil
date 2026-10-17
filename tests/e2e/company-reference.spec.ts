@@ -1,3 +1,4 @@
+import { selectOption } from "./select-helper";
 import { test, expect, type Page } from "@playwright/test";
 const fixture = {
   razao_social: "Empresa da Consulta Ltda.",
@@ -107,9 +108,10 @@ test("CPF, telefones e configurações de pessoal persistem sem exigir parâmetr
   page,
 }) => {
   await enter(page);
-  await page
-    .getByLabel("Tipo de cliente", { exact: true })
-    .selectOption("Pessoa física");
+  await selectOption(
+    page.getByLabel("Tipo de cliente", { exact: true }),
+    "Pessoa física",
+  );
   await page.getByLabel("CPF", { exact: true }).fill("52998224725");
   await page
     .getByLabel("Nome completo", { exact: true })
@@ -122,9 +124,10 @@ test("CPF, telefones e configurações de pessoal persistem sem exigir parâmetr
     .getByRole("button", { name: "Adicionar configuração da folha" })
     .click();
   await page.getByLabel("Competência inicial da configuração").fill("2026-01");
-  await page
-    .getByLabel("Desoneração da folha", { exact: true })
-    .selectOption("Sim");
+  await selectOption(
+    page.getByLabel("Desoneração da folha", { exact: true }),
+    "Sim",
+  );
   await page
     .getByLabel("Alíquota de desoneração (%)", { exact: true })
     .fill("150");
@@ -134,16 +137,17 @@ test("CPF, telefones e configurações de pessoal persistem sem exigir parâmetr
     .getByLabel("Alíquota de desoneração (%)", { exact: true })
     .fill("2,50");
   await page.getByRole("button", { name: "Adicionar vigência PAT" }).click();
-  await page.getByLabel("Participa do PAT").selectOption("Sim");
+  await selectOption(page.getByLabel("Participa do PAT"), "Sim");
   await page.getByLabel("Início da vigência do PAT").fill("2026-01-01");
   await page.getByLabel("Participantes até 5 salários mínimos").fill("24");
-  await page
-    .getByLabel("Origem das quantidades")
-    .selectOption("Levantamento manual");
+  await selectOption(
+    page.getByLabel("Origem das quantidades"),
+    "Levantamento manual",
+  );
   await page
     .getByRole("button", { name: "Adicionar configuração eSocial" })
     .click();
-  await page.getByLabel("Grupo no eSocial").selectOption("Grupo 3");
+  await selectOption(page.getByLabel("Grupo no eSocial"), "Grupo 3");
   await page
     .getByLabel("Início da vigência da configuração eSocial")
     .fill("2026-01-01");
@@ -164,7 +168,10 @@ test("CPF, telefones e configurações de pessoal persistem sem exigir parâmetr
   await expect(
     page.getByLabel("Participantes até 5 salários mínimos"),
   ).toHaveValue("24");
-  await expect(page.getByLabel("Grupo no eSocial")).toHaveValue("Grupo 3");
+  await expect(page.getByLabel("Grupo no eSocial")).toHaveAttribute(
+    "value",
+    "Grupo 3",
+  );
 });
 test("Cadastro antigo mantém os telefones e campos de endereço/cartório ao editar", async ({
   page,

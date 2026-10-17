@@ -1,3 +1,4 @@
+import { Select } from "@/components/ui/select";
 import { readUnionFile } from "./read-file";
 import { FileSpreadsheet, Upload } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -177,7 +178,7 @@ export function UnionImport({
             <div className="grid gap-3 sm:grid-cols-3">
               <label className="text-xs">
                 Aba
-                <select
+                <Select
                   className="form-control mt-1"
                   aria-label="Aba CNES"
                   value={sheet}
@@ -193,11 +194,11 @@ export function UnionImport({
                       {s.name}
                     </option>
                   ))}
-                </select>
+                </Select>
               </label>
               <label className="text-xs">
                 Linha do cabeçalho
-                <select
+                <Select
                   className="form-control mt-1"
                   aria-label="Linha do cabeçalho CNES"
                   value={header}
@@ -214,7 +215,7 @@ export function UnionImport({
                       Linha {i + 1}
                     </option>
                   ))}
-                </select>
+                </Select>
               </label>
               <label className="text-xs">
                 Data de referência do arquivo (opcional)
@@ -232,7 +233,7 @@ export function UnionImport({
                 <label key={field.key} className="text-xs font-medium">
                   {field.label}
                   {["cnpj", "title"].includes(field.key) ? " *" : ""}
-                  <select
+                  <Select
                     aria-label={`Coluna ${field.label}`}
                     className="form-control mt-1"
                     value={mapping[field.key] ?? "-1"}
@@ -249,7 +250,7 @@ export function UnionImport({
                         {i + 1} · {h || "Sem título"}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </label>
               ))}
             </div>

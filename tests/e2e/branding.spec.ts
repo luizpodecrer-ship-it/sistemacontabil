@@ -1,3 +1,4 @@
+import { selectOption } from "./select-helper";
 import { test, expect, type Page } from "@playwright/test";
 async function enter(page: Page) {
   await page.goto("/");
@@ -36,7 +37,7 @@ test("Escritório: prévia ampliada, formatos máximos, branco e proporção per
     .getByLabel("Enviar logo", { exact: true })
     .setInputFiles(await imageFile(page, 501, 500));
   await expect(page.getByRole("alert")).toContainText("500 × 500");
-  await page.getByLabel("Formato do logo").selectOption("horizontal");
+  await selectOption(page.getByLabel("Formato do logo"), "horizontal");
   await page
     .getByLabel("Enviar logo", { exact: true })
     .setInputFiles(await imageFile(page, 500, 251));
@@ -83,7 +84,10 @@ test("Escritório: prévia ampliada, formatos máximos, branco e proporção per
   await expect(
     page.getByLabel("Nome do escritório", { exact: true }),
   ).toHaveValue("Escritório de teste");
-  await expect(page.getByLabel("Formato do logo")).toHaveValue("horizontal");
+  await expect(page.getByLabel("Formato do logo")).toHaveAttribute(
+    "value",
+    "horizontal",
+  );
   await expect(
     page.getByRole("button", { name: "Cor Branco", exact: true }),
   ).toHaveAttribute("aria-pressed", "true");

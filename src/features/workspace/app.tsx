@@ -1,3 +1,4 @@
+import { Select } from "@/components/ui/select";
 import { Dashboard } from "../dashboard/app";
 import { Unions } from "../unions/app";
 import { loadJobsData } from "../jobs/storage";
@@ -254,7 +255,7 @@ export function Workspace({ moduleId }: { moduleId: string }) {
             {f.label}
             {f.required ? " *" : ""}
           </label>
-          <select
+          <Select
             id={`op-${f.key}`}
             aria-label={f.label}
             aria-invalid={!!errorMessage}
@@ -273,7 +274,7 @@ export function Workspace({ moduleId }: { moduleId: string }) {
                     data.accounts.find((a) => a.id === id)?.name}
               </option>
             ))}
-          </select>
+          </Select>
           {errorMessage && (
             <p id={`op-error-${f.key}`} className="text-xs text-red-700 mt-2">
               {errorMessage}
@@ -1010,7 +1011,7 @@ export function Workspace({ moduleId }: { moduleId: string }) {
               >
                 <label className="text-xs">
                   Conta
-                  <select
+                  <Select
                     aria-label={`Conta da partida ${index + 1}`}
                     className={`${input} mt-2`}
                     value={l.accountId}
@@ -1027,7 +1028,7 @@ export function Workspace({ moduleId }: { moduleId: string }) {
                         {a.code} · {a.name}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </label>
                 {(["debit", "credit"] as const).map((side) => (
                   <FormField
@@ -1180,7 +1181,7 @@ export function Workspace({ moduleId }: { moduleId: string }) {
           {moduleId !== "home" && (
             <label className="text-xs font-medium">
               Empresa
-              <select
+              <Select
                 aria-label="Empresa em contexto"
                 className={`${input} mt-2`}
                 value={companyId}
@@ -1195,11 +1196,15 @@ export function Workspace({ moduleId }: { moduleId: string }) {
               >
                 <option value="">Selecione uma empresa</option>
                 {companies.map((c) => (
-                  <option key={c.id} value={c.id}>
+                  <option
+                    key={c.id}
+                    value={c.id}
+                    data-search={`${c.values.code || ""} ${c.values.cnpj || c.values.cpf || ""}`}
+                  >
                     {c.values.tradeName || c.values.legalName}
                   </option>
                 ))}
-              </select>
+              </Select>
             </label>
           )}
           <FormField
@@ -1460,7 +1465,7 @@ export function Workspace({ moduleId }: { moduleId: string }) {
             />
           </div>
           {def.status && (
-            <select
+            <Select
               className={`${input} !w-auto`}
               aria-label="Filtrar situação"
               value={status}
@@ -1469,7 +1474,7 @@ export function Workspace({ moduleId }: { moduleId: string }) {
               {["Todos", ...def.status].map((v) => (
                 <option key={v}>{v}</option>
               ))}
-            </select>
+            </Select>
           )}
           <button
             className={button}
@@ -1891,7 +1896,7 @@ export function Workspace({ moduleId }: { moduleId: string }) {
         {employeeMode && (
           <label className="block text-xs mb-5">
             Empregado
-            <select
+            <Select
               className={`${input} mt-2`}
               aria-label="Empregado do portal"
               value={employee}
@@ -1903,7 +1908,7 @@ export function Workspace({ moduleId }: { moduleId: string }) {
                   {e.values.title}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
         )}
         {table(
