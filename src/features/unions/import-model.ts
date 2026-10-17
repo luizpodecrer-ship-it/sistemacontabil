@@ -159,9 +159,10 @@ export function planUnionImport(
       "Uma coluna não pode preencher dois campos. Revise o mapeamento.",
     );
   if (
-    !/^\d{4}-\d{2}-\d{2}$/.test(source.date) ||
-    isNaN(Date.parse(source.date)) ||
-    new Date(source.date).toISOString().slice(0, 10) !== source.date
+    source.date &&
+    (!/^\d{4}-\d{2}-\d{2}$/.test(source.date) ||
+      isNaN(Date.parse(source.date)) ||
+      new Date(source.date).toISOString().slice(0, 10) !== source.date)
   )
     throw new Error("Informe a data de referência do arquivo.");
   const mapped = sheet.rows
@@ -237,7 +238,7 @@ export function planUnionImport(
           .options!.find(
             (s) => normalize(s) === normalize(raw.representation),
           ) || "Não informado",
-      source: "Arquivo CNES informado pelo usuário · conferir",
+      source: "Planilha importada pelo usuário · conferir",
       sourceDate: source.date,
       sourceFile: source.name,
       sourceHash: source.sha256,

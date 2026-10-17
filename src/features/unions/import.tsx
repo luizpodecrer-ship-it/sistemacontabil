@@ -18,11 +18,13 @@ export function UnionImport({
   onSaved,
   onClose,
   onDirty,
+  onComplete,
 }: {
   data: Data;
   onSaved: (next: Data) => void;
   onClose: () => void;
   onDirty: (dirty: boolean) => void;
+  onComplete: (message: string) => void;
 }) {
   const [book, setBook] = useState<Workbook>(),
     [fileName, setFileName] = useState(""),
@@ -30,7 +32,6 @@ export function UnionImport({
     [header, setHeader] = useState(0),
     [mapping, setMapping] = useState<Record<string, string>>({}),
     [date, setDate] = useState(""),
-    [ack, setAck] = useState(false),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [done, setDone] = useState("");
@@ -40,7 +41,6 @@ export function UnionImport({
     onDirty(!!book && !done);
     return () => onDirty(false);
   }, [book, done, onDirty]);
-  useEffect(() => setAck(false), [book, sheet, header, mapping, date]);
   const plan = useMemo(() => {
     if (!book) return undefined;
     try {
@@ -65,7 +65,6 @@ export function UnionImport({
     setDate("");
     setDone("");
     setError("");
-    setAck(false);
     setBusy(true);
     try {
       const value = await readUnionFile(file, current.signal);
@@ -88,7 +87,7 @@ export function UnionImport({
     }
   }
   async function save() {
-    if (!plan || typeof plan === "string" || !ack || !plan.ready.length) return;
+    if (!plan || typeof plan === "string" || !plan.ready.length) return;
     setBusy(true);
     setError("");
     try {
@@ -97,9 +96,9 @@ export function UnionImport({
         result = commitUnionPlan(state, plan);
       });
       onSaved(next);
-      setDone(
-        `Importação concluída: ${result.inserted} novos sindicatos; ${result.skipped} já existentes preservados.`,
-      );
+      const message = `Importação concluída: ${result.inserted} novos sindicatos; ${result.skipped} já existentes preservados.`;
+      setDone(message);
+      onComplete(message);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -124,10 +123,9 @@ export function UnionImport({
         </button>
       </div>
       <p className="text-xs text-neutral-500">
-        1. Selecione a planilha. 2. Confira a data, as colunas e a prévia. 3.
-        Confirme a importação para cadastrar os sindicatos. Excel XLS, XLSX,
-        exportações HTML/XML e CSV são aceitos, até 20 MB. Cadastros existentes
-        serão preservados.
+        Selecione a planilha e clique em Cadastrar sindicatos para adicioná-los
+        ao catálogo de teste. Excel XLS, XLSX, exportações HTML/XML e CSV são
+        aceitos, até 20 MB. Cadastros existentes serão preservados.
       </p>
       <div className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-5">
         <label
@@ -169,64 +167,66 @@ export function UnionImport({
       )}
       {book && !done && (
         <>
-          <div className="grid gap-3 sm:grid-cols-3">
-            <label className="text-xs">
-              Aba
-              <select
-                className="form-control mt-1"
-                aria-label="Aba CNES"
-                value={sheet}
-                onChange={(e) => {
-                  const n = Number(e.target.value);
-                  setSheet(n);
-                  setHeader(0);
-                  setMapping(suggestMapping(book.sheets[n].rows[0] || []));
-                }}
-              >
-                {book.sheets.map((s, i) => (
-                  <option key={i} value={i}>
-                    {s.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="text-xs">
-              Linha do cabeçalho
-              <select
-                className="form-control mt-1"
-                aria-label="Linha do cabeçalho CNES"
-                value={header}
-                onChange={(e) => {
-                  const n = Number(e.target.value);
-                  setHeader(n);
-                  setMapping(suggestMapping(book.sheets[sheet].rows[n] || []));
-                }}
-              >
-                {book.sheets[sheet].rows.slice(0, 25).map((_, i) => (
-                  <option key={i} value={i}>
-                    Linha {i + 1}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="text-xs">
-              Data de referência do arquivo (obrigatória)
-              <input
-                type="date"
-                aria-label="Data de referência do arquivo"
-                className="form-control mt-1"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-              />
-            </label>
-          </div>
           <details
             open={Number(mapping.cnpj) < 0 || Number(mapping.title) < 0}
             className="rounded-xl border border-neutral-200 p-4"
           >
             <summary className="cursor-pointer text-sm font-semibold">
-              Correspondência das colunas
+              Ajustes avançados: aba e colunas
             </summary>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <label className="text-xs">
+                Aba
+                <select
+                  className="form-control mt-1"
+                  aria-label="Aba CNES"
+                  value={sheet}
+                  onChange={(e) => {
+                    const n = Number(e.target.value);
+                    setSheet(n);
+                    setHeader(0);
+                    setMapping(suggestMapping(book.sheets[n].rows[0] || []));
+                  }}
+                >
+                  {book.sheets.map((s, i) => (
+                    <option key={i} value={i}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="text-xs">
+                Linha do cabeçalho
+                <select
+                  className="form-control mt-1"
+                  aria-label="Linha do cabeçalho CNES"
+                  value={header}
+                  onChange={(e) => {
+                    const n = Number(e.target.value);
+                    setHeader(n);
+                    setMapping(
+                      suggestMapping(book.sheets[sheet].rows[n] || []),
+                    );
+                  }}
+                >
+                  {book.sheets[sheet].rows.slice(0, 25).map((_, i) => (
+                    <option key={i} value={i}>
+                      Linha {i + 1}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="text-xs">
+                Data de referência do arquivo (opcional)
+                <input
+                  type="date"
+                  aria-label="Data de referência do arquivo"
+                  className="form-control mt-1"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                />
+              </label>
+            </div>
             <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
               {importFields.map((field) => (
                 <label key={field.key} className="text-xs font-medium">
@@ -317,24 +317,13 @@ export function UnionImport({
                     </ul>
                   </details>
                 )}
-                <label className="flex items-start gap-2 text-xs">
-                  <input
-                    aria-label="Confirmar origem e revisão CNES"
-                    className="mt-0.5"
-                    type="checkbox"
-                    checked={ack}
-                    onChange={(e) => setAck(e.target.checked)}
-                  />
-                  Obtive este arquivo no CNES e conferi a data, as colunas e a
-                  prévia. A importação não comprova a situação sindical atual.
-                </label>
                 <button
                   type="button"
                   className={button}
-                  disabled={busy || !ack || !plan.ready.length}
+                  disabled={busy || !plan.ready.length}
                   onClick={() => void save()}
                 >
-                  Importar {plan.ready.length} sindicatos
+                  Cadastrar {plan.ready.length} sindicatos
                 </button>
               </>
             )

@@ -140,26 +140,17 @@ test("CNES Excel real: leitura no navegador, mapeamento, revisão de duplicados 
     .getByLabel("Arquivo CNES", { exact: true })
     .setInputFiles("tests/fixtures/union-import.xlsx");
   await expect(page.getByLabel("Aba CNES", { exact: true })).toHaveValue("0");
-  await page
-    .getByLabel("Data de referência do arquivo", { exact: true })
-    .fill("2026-01-01");
   await expect(
     page
       .getByRole("status")
       .filter({ hasText: "1 novos · 0 já cadastrados · 3 para revisão" }),
   ).toBeVisible();
   await page
-    .getByLabel("Confirmar origem e revisão CNES", { exact: true })
-    .check();
-  await page
-    .getByRole("button", { name: "Importar 1 sindicatos", exact: true })
+    .getByRole("button", { name: "Cadastrar 1 sindicatos", exact: true })
     .click();
   await expect(
     page.getByText(/Importação concluída: 1 novos sindicatos/),
   ).toBeVisible();
-  await page
-    .getByRole("button", { name: "Fechar importação", exact: true })
-    .click();
   await expect(
     page.getByRole("cell", { name: "04.252.011/0001-10", exact: true }),
   ).toBeVisible();
@@ -170,16 +161,13 @@ test("CNES Excel real: leitura no navegador, mapeamento, revisão de duplicados 
     .getByLabel("Arquivo CNES", { exact: true })
     .setInputFiles("tests/fixtures/union-import.xlsx");
   await expect(page.getByLabel("Aba CNES", { exact: true })).toHaveValue("0");
-  await page
-    .getByLabel("Data de referência do arquivo", { exact: true })
-    .fill("2026-01-01");
   await expect(
     page
       .getByRole("status")
       .filter({ hasText: "0 novos · 1 já cadastrados · 3 para revisão" }),
   ).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Importar 0 sindicatos", exact: true }),
+    page.getByRole("button", { name: "Cadastrar 0 sindicatos", exact: true }),
   ).toBeDisabled();
   expect(conversionRequests).toHaveLength(0);
   await page.setViewportSize({ width: 390, height: 844 });
@@ -226,20 +214,11 @@ for (const format of ["binary", "html", "xml"] as const) {
       page.getByLabel("Linha do cabeçalho CNES", { exact: true }),
     ).toHaveValue(format === "binary" ? "2" : "0");
     await page
-      .getByLabel("Data de referência do arquivo", { exact: true })
-      .fill("2026-01-01");
-    await page
-      .getByLabel("Confirmar origem e revisão CNES", { exact: true })
-      .check();
-    await page
-      .getByRole("button", { name: "Importar 1 sindicatos", exact: true })
+      .getByRole("button", { name: "Cadastrar 1 sindicatos", exact: true })
       .click();
     await expect(
       page.getByText(/Importação concluída: 1 novos sindicatos/),
     ).toBeVisible();
-    await page
-      .getByRole("button", { name: "Fechar importação", exact: true })
-      .click();
     await expect(
       page.getByRole("cell", { name: "04.252.011/0001-10", exact: true }),
     ).toBeVisible();
@@ -256,25 +235,21 @@ test("Arquivo inválido explica o problema e permite selecionar novamente o mesm
   await page
     .getByRole("button", { name: "Importar CNES", exact: true })
     .click();
-  await page
-    .getByLabel("Arquivo CNES", { exact: true })
-    .setInputFiles({
-      name: "cnes.xls",
-      mimeType: "application/vnd.ms-excel",
-      buffer: Buffer.from("<html>Login necessário</html>"),
-    });
+  await page.getByLabel("Arquivo CNES", { exact: true }).setInputFiles({
+    name: "cnes.xls",
+    mimeType: "application/vnd.ms-excel",
+    buffer: Buffer.from("<html>Login necessário</html>"),
+  });
   await expect(page.getByRole("alert")).toContainText(
     "não contém uma tabela Excel",
   );
   const html =
     "<table><tr><th>CNPJ</th><th>Denominação</th></tr><tr><td>04252011000110</td><td>Sindicato de teste</td></tr></table>";
-  await page
-    .getByLabel("Arquivo CNES", { exact: true })
-    .setInputFiles({
-      name: "cnes.xls",
-      mimeType: "application/vnd.ms-excel",
-      buffer: Buffer.from(html),
-    });
+  await page.getByLabel("Arquivo CNES", { exact: true }).setInputFiles({
+    name: "cnes.xls",
+    mimeType: "application/vnd.ms-excel",
+    buffer: Buffer.from(html),
+  });
   await expect(
     page.getByRole("status").filter({ hasText: "Planilha lida:" }),
   ).toBeVisible();

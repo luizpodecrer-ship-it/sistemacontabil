@@ -168,6 +168,12 @@ export function Unions({
         data={data}
         onSaved={onSaved}
         onDirty={setImportDirty}
+        onComplete={(message) => {
+          setImportDirty(false);
+          setImporting(false);
+          setMessage(message);
+          setPage(0);
+        }}
         onClose={() => {
           if (importDirty && !window.confirm("Sair sem importar esta prévia?"))
             return;

@@ -118,3 +118,24 @@ test("CSV preserva linhas vazias para os números do relatório de revisão", ()
   );
   assert.equal(plan.review[0].line, 3);
 });
+
+test("importação de teste aceita data da fonte vazia sem inventar referência", () => {
+  const data = initialData();
+  const sheet = {
+    name: "Teste",
+    rows: [
+      ["CNPJ", "Denominação"],
+      ["04252011000110", "Sindicato de teste"],
+    ],
+  };
+  const plan = planUnionImport(
+    sheet,
+    0,
+    suggestMapping(sheet.rows[0]),
+    { name: "teste.csv", sha256: "a".repeat(64), date: "" },
+    data,
+  );
+  assert.equal(plan.ready.length, 1);
+  assert.equal(plan.ready[0].item.values.sourceDate, "");
+  assert.ok(plan.ready[0].item.values.importedAt);
+});

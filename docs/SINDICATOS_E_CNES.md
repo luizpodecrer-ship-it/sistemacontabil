@@ -26,8 +26,8 @@ São atalhos para as ferramentas externas; o Nexopen não contorna autenticaçã
 1. Abra **Consultar CNES** ou **Portal do MTE e base de dados**. Faça a consulta ou obtenha a planilha na ferramenta oficial.
 2. No Nexopen, clique em **Importar CNES** e clique em **Selecionar planilha Excel** e escolha XLS, XLSX ou CSV. Exportações HTML/XML salvas como `.xls` também são reconhecidas.
 3. A aba e o cabeçalho são procurados automaticamente nas primeiras 25 linhas de cada aba. Confira os campos identificados; a correspondência das colunas continua ajustável. **CNPJ e Denominação** são obrigatórios. O leiaute oficial vigente não é presumido.
-4. Informe a **data de referência do arquivo**. Confira a prévia dos novos registros e as linhas separadas para revisão.
-5. Confirme origem/revisão e clique em **Importar N sindicatos**.
+4. Clique em **Cadastrar N sindicatos**. O sistema salva os registros válidos e volta à lista de sindicatos.
+5. Se precisar corrigir a detecção, abra **Ajustes avançados: aba e colunas**. A data de referência é opcional; sem ela, permanece vazia. Não é exigida declaração de origem para importar uma planilha de teste.
 
 Linhas com CNPJ repetido no próprio arquivo ficam todas para revisão. CNPJ já cadastrado é preservado, sem substituir alterações locais. Linhas com dados inválidos não são gravadas. A gravação verifica novamente os CNPJs atuais para evitar duplicidade com outra aba. A operação é atômica no armazenamento atual e gera histórico de importação.
 
