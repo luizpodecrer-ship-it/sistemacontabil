@@ -175,8 +175,35 @@ test("Login personalizado e ícone transparente têm fundo correto; links de dem
     buffer: Buffer.from(blackIcon, "base64"),
   });
   await page
-    .getByLabel("Enviar logo da entrada", { exact: true })
+    .getByLabel("Enviar logo do lado direito", { exact: true })
     .setInputFiles(await imageFile(page, 400, 200));
+  await page
+    .getByLabel("Enviar ícone do lado esquerdo", { exact: true })
+    .setInputFiles(await imageFile(page, 120, 80));
+  await expect(page.getByRole("alert")).toContainText("quadrado");
+  await page
+    .getByLabel("Enviar ícone do lado esquerdo", { exact: true })
+    .setInputFiles(await imageFile(page, 96, 96));
+  await page
+    .getByRole("button", { name: "Aumentar ícone esquerdo", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Diminuir logo direito", exact: true })
+    .click();
+  await page
+    .getByRole("group", { name: "Alinhamento do ícone esquerdo", exact: true })
+    .getByRole("button", { name: "Direita", exact: true })
+    .click();
+  await page
+    .getByRole("group", { name: "Alinhamento do logo direito", exact: true })
+    .getByRole("button", { name: "Esquerda", exact: true })
+    .click();
+  await page
+    .getByLabel("Fundo do ícone esquerdo", { exact: true })
+    .fill("#eeeeee");
+  await page
+    .getByLabel("Cor do painel lateral", { exact: true })
+    .fill("#164e63");
   await page
     .getByLabel("Título do formulário", { exact: true })
     .fill("Seu escritório conectado");
@@ -227,7 +254,7 @@ test("Login personalizado e ícone transparente têm fundo correto; links de dem
   await expect(
     page.locator('[data-login-panel] [data-login-text="loginHeadline"]'),
   ).toHaveText("Mais organização.\nMais resultados.");
-  const loginLogo = page.locator("[data-login-logo]").first();
+  const loginLogo = page.locator('[data-login-logo][data-login-side="right"]');
   await expect(loginLogo).toHaveCSS("background-color", "rgb(255, 255, 255)");
   expect(
     await loginLogo
@@ -238,6 +265,30 @@ test("Login personalizado e ícone transparente têm fundo correto; links de dem
       ]),
   ).toEqual([400, 200]);
   await expect(loginLogo.locator("img")).toHaveCSS("object-fit", "contain");
+  const leftIcon = page.locator('[data-login-side="left"]');
+  await expect(leftIcon).toHaveCSS("width", "72px");
+  await expect(leftIcon).toHaveCSS("height", "72px");
+  await expect(leftIcon).toHaveCSS("background-color", "rgb(238, 238, 238)");
+  await expect(loginLogo).toHaveCSS("width", "232px");
+  await expect(loginLogo).toHaveCSS("height", "116px");
+  await expect(page.locator("[data-login-panel]")).toHaveCSS(
+    "background-color",
+    "rgb(22, 78, 99)",
+  );
+  expect(
+    await leftIcon
+      .locator("img")
+      .evaluate((image: HTMLImageElement) => [
+        image.naturalWidth,
+        image.naturalHeight,
+      ]),
+  ).toEqual([96, 96]);
+  expect(
+    await leftIcon.evaluate((el) =>
+      parseFloat(getComputedStyle(el).marginLeft),
+    ),
+  ).toBeGreaterThan(0);
+  await expect(loginLogo).toHaveCSS("margin-left", "0px");
   await expect(
     page.getByRole("link", { name: /Ver Dot Pattern|Ver Dock/ }),
   ).toHaveCount(0);
@@ -248,6 +299,8 @@ test("Login personalizado e ícone transparente têm fundo correto; links de dem
       exact: true,
     }),
   ).toBeVisible();
+  await expect(leftIcon).toHaveCSS("width", "72px");
+  await expect(loginLogo).toHaveCSS("width", "232px");
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.locator("[data-login-panel]")).not.toBeVisible();
   expect(

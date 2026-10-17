@@ -53,10 +53,16 @@ Verificações: testes PostgreSQL com PGlite para permissões, isolamento e conc
 
 ## Personalizar a área de login
 
-Em **Administração → Identidade do sistema → Personalizar área de login**, edite título e subtítulo do formulário, botão de entrada, destaque e título do painel lateral, descrição e textos de rodapé. É possível enviar um logo exclusivo para a entrada, nos mesmos limites de imagem. Sem logo próprio, será utilizado o logo do sistema e, na falta dele, o ícone ou nome. A edição mostra uma prévia antes de salvar.
+Em **Administração → Identidade do sistema → Personalizar área de login**, edite os textos e configure cada lado separadamente:
 
-O fundo do ícone do menu e o fundo do logo da entrada são independentes da imagem. O padrão é branco, corrigindo a exibição de símbolos pretos transparentes. Para uma marca branca, escolha fundo escuro. O painel lateral também tem cor própria, com contraste do texto ajustado automaticamente. As imagens mantêm proporção e não recebem filtros ou recortes.
+- **Lado esquerdo:** ícone quadrado próprio, até 500 × 500 px. Sem imagem própria, usa apenas o ícone do sistema. Tamanho de exibição de 32 a 160 px.
+- **Lado direito:** logo horizontal próprio, até 500 × 250 px. Sem imagem própria, usa o logo do sistema. Tamanho de exibição de 80 a 400 px.
+- Cada imagem possui controles de aumentar/diminuir, ajuste deslizante, alinhamento à esquerda, centro ou direita e cor de fundo independente. O fundo do painel direito também é configurável, com contraste automático dos textos.
+
+A prévia acompanha os ajustes antes de salvar. Os limites de tamanho de exibição não alteram os pixels do arquivo enviado: a imagem mantém proporção e transparência, sem cortes ou filtros. O ícone do menu permanece independente. Logos antigos continuam no painel direito; à esquerda não se reutiliza um logo horizontal. No celular, permanece o ícone esquerdo e o painel direito fica oculto.
 
 Os links “Ver Dot Pattern” e “Ver Dock” foram removidos da interface; os componentes de demonstração não foram apagados. A personalização altera a apresentação da entrada, preservando a autenticação e as mensagens obrigatórias da demonstração.
 
-Instalações com Supabase precisam aplicar também **`supabase/migrations/005_login_branding.sql`**, após a 004. A migração mantém a permissão administrativa, valida os novos textos/cores/logos e preserva campos de login quando um cliente anterior salva apenas a marca principal. A interface confere a versão suportada antes de enviar uma alteração global; sem a atualização 005, não informa que os novos campos foram salvos.
+Instalações com Supabase precisam aplicar também **`supabase/migrations/005_login_branding.sql`**, após a 004. A migração mantém a permissão administrativa, valida os novos textos/cores/logos e preserva campos de login quando um cliente anterior salva apenas a marca principal. A interface confere a versão suportada antes de enviar uma alteração global; a versão atual requer também a atualização 006 descrita abaixo.
+
+Para os controles independentes, aplique **`supabase/migrations/006_login_branding_sides.sql`** depois da 005. A migração valida tamanhos, alinhamentos, cores e ícone quadrado, preservando os campos omitidos por clientes anteriores. A interface exige a versão 3 da função de configuração antes de salvar no banco. Sem Supabase configurado, estas opções continuam salvas apenas no navegador.

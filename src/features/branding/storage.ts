@@ -4,6 +4,7 @@ import {
   defaultPlatform,
   normalizeBrand,
   ink,
+  loginAsset,
   type OfficeBrand,
   type PlatformBrand,
 } from "./model";
@@ -67,9 +68,9 @@ export async function saveBrand(
   }
   if (platform) {
     const capability = await cloud!.rpc("platform_branding_version");
-    if (capability.error || capability.data !== 2)
+    if (capability.error || capability.data !== 3)
       throw new Error(
-        "A personalização do login requer a atualização 005 do banco. Nenhuma alteração foi enviada.",
+        "A personalização do login requer a atualização 006 do banco. Nenhuma alteração foi enviada.",
       );
   }
   const { error } = await cloud!.rpc(
@@ -168,15 +169,18 @@ export function applyLogin(brand: PlatformBrand) {
     .querySelectorAll<HTMLElement>("[data-login-logo]")
     .forEach((node) => {
       node.replaceChildren();
-      node.style.backgroundColor = brand.loginLogoBackground;
-      node.style.color = ink(brand.loginLogoBackground);
-      const url = brand.loginLogo || brand.logo || brand.icon;
+      const asset = loginAsset(
+        brand,
+        node.dataset.loginSide === "left" ? "left" : "right",
+      );
+      Object.assign(node.style, asset.style);
+      const url = asset.image;
       if (url) {
         const img = document.createElement("img");
         img.src = url;
         img.alt = `Logo ${brand.name} na entrada`;
         img.className = "h-full w-full object-contain";
         node.append(img);
-      } else node.textContent = brand.name;
+      } else node.textContent = asset.fallback;
     });
 }

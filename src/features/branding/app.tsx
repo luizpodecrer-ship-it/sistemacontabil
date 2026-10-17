@@ -114,7 +114,7 @@ function Branding({
   }
   async function upload(
     file: File | undefined,
-    key: "logo" | "icon" | "loginLogo",
+    key: "logo" | "icon" | "loginLogo" | "loginIcon",
   ) {
     if (!file) return;
     setBusy(true);
@@ -122,14 +122,15 @@ function Branding({
     try {
       const data = await readBrandImage(
         file,
-        key === "icon"
+        key === "icon" || key === "loginIcon"
           ? "square"
           : key === "loginLogo"
-            ? (draft as PlatformBrand).loginLogoFormat
+            ? "horizontal"
             : draft.logoFormat,
-        key === "icon",
+        key === "icon" || key === "loginIcon",
       );
       change(key, data);
+      if (key === "loginLogo") change("loginLogoFormat", "horizontal");
     } catch (e) {
       setMessage((e as Error).message);
     } finally {
@@ -388,7 +389,7 @@ function Branding({
               brand={system}
               onChange={change}
               busy={busy}
-              onUpload={(file) => void upload(file, "loginLogo")}
+              onUpload={(file, key) => void upload(file, key)}
             />
           )}
           {!platform && (

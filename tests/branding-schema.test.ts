@@ -12,6 +12,7 @@ test("Branding: administração global protegida no servidor, escritório isolad
     "001_workspace.sql",
     "004_branding.sql",
     "005_login_branding.sql",
+    "006_login_branding_sides.sql",
   ])
     await db.exec(
       await readFile(
@@ -126,6 +127,12 @@ test("Branding: administração global protegida no servidor, escritório isolad
     iconBackground: "#ffffff",
     loginLogo: "",
     loginLogoFormat: "horizontal",
+    loginIcon: "",
+    loginIconSize: "72",
+    loginLogoSize: "232",
+    loginIconAlign: "right",
+    loginLogoAlign: "left",
+    loginIconBackground: "#eeeeee",
   };
   await db.query("select public.save_platform_brand($1::jsonb,1)", [
     JSON.stringify(loginBrand),
@@ -153,6 +160,19 @@ test("Branding: administração global protegida no servidor, escritório isolad
       JSON.stringify({ ...loginBrand, loginPanelColor: "red;display:none" }),
     ]),
   );
+  for (const invalid of [
+    { loginIconSize: "999" },
+    { loginLogoSize: "0" },
+    { loginIconAlign: "bottom" },
+    { loginIconBackground: "transparent" },
+    { loginIcon: "data:image/svg+xml,<svg/>" },
+  ]) {
+    await assert.rejects(() =>
+      db.query("select public.save_platform_brand($1::jsonb,2)", [
+        JSON.stringify({ ...loginBrand, ...invalid }),
+      ]),
+    );
+  }
   await db.query("select public.save_platform_brand($1::jsonb,2)", [
     JSON.stringify(branding),
   ]);
@@ -164,6 +184,14 @@ test("Branding: administração global protegida no servidor, escritório isolad
     ).rows[0].value.branding.loginTitle,
     "Bem-vindo ao teste",
   );
+  const persisted = (
+    await db.query<{ value: any }>(
+      "select public.get_platform_brand() as value",
+    )
+  ).rows[0].value.branding;
+  assert.equal(persisted.loginIconSize, "72");
+  assert.equal(persisted.loginLogoSize, "232");
+  assert.equal(persisted.loginIconAlign, "right");
   await db.exec("set role anon");
   assert.equal(
     (

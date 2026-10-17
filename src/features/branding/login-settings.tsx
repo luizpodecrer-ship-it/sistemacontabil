@@ -1,4 +1,4 @@
-import { type PlatformBrand, loginTexts, ink } from "./model";
+import { type PlatformBrand, loginTexts, ink, loginAsset } from "./model";
 export function LoginSettingsEditor({
   brand,
   onChange,
@@ -7,7 +7,7 @@ export function LoginSettingsEditor({
 }: {
   brand: PlatformBrand;
   onChange: (key: string, value: string) => void;
-  onUpload: (file: File | undefined) => void;
+  onUpload: (file: File | undefined, key: "loginIcon" | "loginLogo") => void;
   busy: boolean;
 }) {
   return (
@@ -44,60 +44,140 @@ export function LoginSettingsEditor({
             )}
           </label>
         ))}
-        <label className="block text-xs font-medium">
-          Formato do logo da entrada
-          <select
-            className="form-control mt-1.5"
-            disabled={busy}
-            value={brand.loginLogoFormat}
-            onChange={(e) => {
-              if (
-                brand.loginLogo &&
-                !window.confirm(
-                  "Trocar o formato remove o logo da entrada da prévia. Continuar?",
-                )
-              )
-                return;
-              onChange("loginLogoFormat", e.target.value);
-              onChange("loginLogo", "");
-            }}
-          >
-            <option value="horizontal">Horizontal · até 500 × 250 px</option>
-            <option value="square">Quadrado · até 500 × 500 px</option>
-          </select>
-        </label>
-        <div className="flex flex-wrap items-center gap-3">
-          <label className="cursor-pointer rounded-lg border border-neutral-300 px-3 py-2 text-xs">
-            Enviar logo da entrada
-            <input
-              type="file"
-              accept="image/png,image/jpeg,image/webp"
-              aria-label="Enviar logo da entrada"
+        {(["left", "right"] as const).map((side) => {
+          const left = side === "left";
+          const key = left ? "loginIcon" : "loginLogo";
+          const sizeKey = left ? "loginIconSize" : "loginLogoSize";
+          const alignKey = left ? "loginIconAlign" : "loginLogoAlign";
+          const title = left
+            ? "Lado esquerdo · ícone quadrado"
+            : "Lado direito · logo horizontal";
+          const label = left
+            ? "Enviar ícone do lado esquerdo"
+            : "Enviar logo do lado direito";
+          const min = left ? 32 : 80,
+            max = left ? 160 : 400;
+          return (
+            <fieldset
+              key={side}
+              className="space-y-3 rounded-xl border border-neutral-200 p-4"
               disabled={busy}
-              className="sr-only"
-              onChange={(e) => {
-                onUpload(e.target.files?.[0]);
-                e.target.value = "";
-              }}
-            />
-          </label>
-          <button
-            type="button"
-            disabled={!brand.loginLogo || busy}
-            onClick={() => onChange("loginLogo", "")}
-            className="text-xs text-neutral-500 underline disabled:opacity-40"
-          >
-            Usar logo do sistema
-          </button>
-        </div>
-        <p className="text-[11px] text-neutral-500">
-          PNG, JPG ou WebP, até 1 MB. Sem imagem própria, a entrada usa o logo
-          do sistema. A imagem mantém sua proporção.
-        </p>
+            >
+              <legend className="px-1 text-sm font-semibold">{title}</legend>
+              <Logo brand={brand} side={side} />
+              <div className="flex flex-wrap items-center gap-3">
+                <label className="cursor-pointer rounded-lg border border-neutral-300 px-3 py-2 text-xs">
+                  {label}
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    aria-label={label}
+                    className="sr-only"
+                    onChange={(e) => {
+                      onUpload(e.target.files?.[0], key);
+                      e.target.value = "";
+                    }}
+                  />
+                </label>
+                <button
+                  type="button"
+                  disabled={!brand[key]}
+                  onClick={() => onChange(key, "")}
+                  className="text-xs text-neutral-500 underline disabled:opacity-40"
+                >
+                  {left ? "Usar ícone do sistema" : "Usar logo do sistema"}
+                </button>
+              </div>
+              <p className="text-[11px] text-neutral-500">
+                {left
+                  ? "Imagem quadrada, até 500 × 500 px."
+                  : "Logo horizontal, até 500 × 250 px."}{" "}
+                PNG, JPG ou WebP, até 1 MB. A proporção e a transparência são
+                preservadas.
+              </p>
+              <label className="block text-xs font-medium">
+                Tamanho {left ? "do ícone esquerdo" : "do logo direito"}:{" "}
+                {brand[sizeKey]} px
+                <div className="mt-2 flex items-center gap-3">
+                  <button
+                    type="button"
+                    aria-label={`Diminuir ${left ? "ícone esquerdo" : "logo direito"}`}
+                    disabled={Number(brand[sizeKey]) <= min}
+                    className="rounded-lg border px-3 py-2 disabled:opacity-40"
+                    onClick={() =>
+                      onChange(
+                        sizeKey,
+                        String(Math.max(min, Number(brand[sizeKey]) - 8)),
+                      )
+                    }
+                  >
+                    −
+                  </button>
+                  <input
+                    aria-label={
+                      left
+                        ? "Tamanho do ícone esquerdo"
+                        : "Tamanho do logo direito"
+                    }
+                    className="min-w-0 flex-1"
+                    type="range"
+                    min={min}
+                    max={max}
+                    step="8"
+                    value={brand[sizeKey]}
+                    onChange={(e) => onChange(sizeKey, e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    aria-label={`Aumentar ${left ? "ícone esquerdo" : "logo direito"}`}
+                    disabled={Number(brand[sizeKey]) >= max}
+                    className="rounded-lg border px-3 py-2 disabled:opacity-40"
+                    onClick={() =>
+                      onChange(
+                        sizeKey,
+                        String(Math.min(max, Number(brand[sizeKey]) + 8)),
+                      )
+                    }
+                  >
+                    +
+                  </button>
+                </div>
+              </label>
+              <div
+                role="group"
+                aria-label={
+                  left
+                    ? "Alinhamento do ícone esquerdo"
+                    : "Alinhamento do logo direito"
+                }
+                className="flex flex-wrap gap-2"
+              >
+                {(
+                  [
+                    ["left", "Esquerda"],
+                    ["center", "Centro"],
+                    ["right", "Direita"],
+                  ] as const
+                ).map(([value, text]) => (
+                  <button
+                    type="button"
+                    key={value}
+                    aria-pressed={brand[alignKey] === value}
+                    onClick={() => onChange(alignKey, value)}
+                    className={`rounded-lg border px-3 py-2 text-xs ${brand[alignKey] === value ? "border-neutral-900 bg-neutral-900 text-white" : "border-neutral-200 bg-white text-neutral-700"}`}
+                  >
+                    {text}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+          );
+        })}
         <div className="grid gap-3 sm:grid-cols-2">
           {[
             { key: "loginPanelColor", label: "Cor do painel lateral" },
-            { key: "loginLogoBackground", label: "Fundo do logo na entrada" },
+            { key: "loginLogoBackground", label: "Fundo do logo direito" },
+            { key: "loginIconBackground", label: "Fundo do ícone esquerdo" },
             { key: "iconBackground", label: "Fundo do ícone no menu" },
           ].map((field) => (
             <label key={field.key} className="text-xs font-medium">
@@ -116,24 +196,32 @@ export function LoginSettingsEditor({
     </details>
   );
 }
-function Logo({ brand }: { brand: PlatformBrand }) {
-  const image = brand.loginLogo || brand.logo || brand.icon;
+function Logo({
+  brand,
+  side,
+}: {
+  brand: PlatformBrand;
+  side: "left" | "right";
+}) {
+  const asset = loginAsset(brand, side);
   return (
     <div
-      className="mb-4 grid h-14 max-w-48 place-items-center rounded-lg p-2"
-      style={{
-        backgroundColor: brand.loginLogoBackground,
-        color: ink(brand.loginLogoBackground),
-      }}
+      data-testid={`login-preview-${side}`}
+      className="login-brand mb-4"
+      style={asset.style}
     >
-      {image ? (
+      {asset.image ? (
         <img
-          src={image}
-          alt="Logo na prévia de login"
-          className="h-full max-h-10 w-full object-contain"
+          src={asset.image}
+          alt={
+            side === "left"
+              ? "Ícone esquerdo na prévia"
+              : "Logo direito na prévia"
+          }
+          className="h-full w-full object-contain"
         />
       ) : (
-        <span className="font-semibold">{brand.name}</span>
+        <span>{asset.fallback}</span>
       )}
     </div>
   );
@@ -145,7 +233,7 @@ export function LoginPreview({ brand }: { brand: PlatformBrand }) {
       <h2 className="mb-3 text-sm font-semibold">Prévia da área de login</h2>
       <div className="grid overflow-hidden rounded-xl border border-neutral-200 bg-white sm:grid-cols-2">
         <div className="p-5 min-w-0">
-          <Logo brand={brand} />
+          <Logo brand={brand} side="left" />
           <h3 className="break-words text-lg font-semibold">
             {brand.loginTitle}
           </h3>
@@ -169,7 +257,7 @@ export function LoginPreview({ brand }: { brand: PlatformBrand }) {
           className="min-w-0 p-5"
           style={{ backgroundColor: brand.loginPanelColor, color: foreground }}
         >
-          <Logo brand={brand} />
+          <Logo brand={brand} side="right" />
           <p className="break-words text-[10px] uppercase tracking-wider opacity-75">
             {brand.loginEyebrow}
           </p>

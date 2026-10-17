@@ -15,6 +15,12 @@ export type LoginSettings = {
   loginFooter: string;
   loginFormFooter: string;
   loginButton: string;
+  loginIcon: string;
+  loginIconSize: string;
+  loginIconAlign: string;
+  loginIconBackground: string;
+  loginLogoSize: string;
+  loginLogoAlign: string;
   loginLogo: string;
   loginLogoFormat: LogoFormat;
   loginPanelColor: string;
@@ -31,6 +37,12 @@ export const defaultLogin: LoginSettings = {
   loginFooter: "Clareza para decidir. Espaço para crescer.",
   loginFormFooter: "",
   loginButton: "Explorar a prévia",
+  loginIcon: "",
+  loginIconSize: "64",
+  loginIconAlign: "left",
+  loginIconBackground: "#ffffff",
+  loginLogoSize: "240",
+  loginLogoAlign: "left",
   loginLogo: "",
   loginLogoFormat: "horizontal",
   loginPanelColor: "#171717",
@@ -136,14 +148,17 @@ export function normalizeBrand<T extends OfficeBrand | PlatformBrand>(
     if (typeof v !== "string") continue;
     if (
       (key === "color" ||
-        ["loginPanelColor", "loginLogoBackground", "iconBackground"].includes(
-          key,
-        )) &&
+        [
+          "loginPanelColor",
+          "loginLogoBackground",
+          "loginIconBackground",
+          "iconBackground",
+        ].includes(key)) &&
       !/^#[0-9a-f]{6}$/i.test(v)
     )
       continue;
     if (
-      ["logo", "icon", "loginLogo"].includes(key) &&
+      ["logo", "icon", "loginLogo", "loginIcon"].includes(key) &&
       v &&
       !/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(v)
     )
@@ -151,6 +166,18 @@ export function normalizeBrand<T extends OfficeBrand | PlatformBrand>(
     if (
       ["logoFormat", "loginLogoFormat"].includes(key) &&
       !["square", "horizontal"].includes(v)
+    )
+      continue;
+    if (
+      ["loginIconAlign", "loginLogoAlign"].includes(key) &&
+      !["left", "center", "right"].includes(v)
+    )
+      continue;
+    if (
+      ["loginIconSize", "loginLogoSize"].includes(key) &&
+      (!/^\d{2,3}$/.test(v) ||
+        Number(v) < (key === "loginIconSize" ? 32 : 80) ||
+        Number(v) > (key === "loginIconSize" ? 160 : 400))
     )
       continue;
     if (key === "name" && (!v.trim() || v.length > 80)) continue;
@@ -215,4 +242,27 @@ export async function readBrandImage(
   } finally {
     URL.revokeObjectURL(url);
   }
+}
+
+export function loginAsset(brand: PlatformBrand, side: "left" | "right") {
+  const left = side === "left";
+  const size = Number(left ? brand.loginIconSize : brand.loginLogoSize);
+  const align = left ? brand.loginIconAlign : brand.loginLogoAlign;
+  const background = left
+    ? brand.loginIconBackground
+    : brand.loginLogoBackground;
+  return {
+    image: left ? brand.loginIcon || brand.icon : brand.loginLogo || brand.logo,
+    fallback: left ? brand.name.trim().charAt(0) : brand.name,
+    style: {
+      width: `${size}px`,
+      maxWidth: "100%",
+      height: "auto",
+      aspectRatio: left ? "1 / 1" : "2 / 1",
+      marginLeft: align === "left" ? "0" : "auto",
+      marginRight: align === "right" ? "0" : "auto",
+      backgroundColor: background,
+      color: ink(background),
+    },
+  };
 }

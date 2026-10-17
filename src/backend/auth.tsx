@@ -113,7 +113,11 @@ function CloudAuth({ done, logout }: { done: () => void; logout: boolean }) {
     <main className="min-h-dvh flex bg-white">
       <section className="w-full lg:w-1/2 flex items-center justify-center px-5 py-12">
         <div className="max-w-sm w-full">
-          <div data-login-logo className="login-brand mb-8" />
+          <div
+            data-login-logo
+            data-login-side="left"
+            className="login-brand mb-8"
+          />
           <h1
             data-login-text={mode === "login" ? "loginTitle" : undefined}
             className="text-2xl font-semibold mb-3"
@@ -224,7 +228,7 @@ function CloudAuth({ done, logout }: { done: () => void; logout: boolean }) {
         data-login-panel
         className="hidden w-1/2 flex-col justify-between bg-neutral-900 p-12 text-white lg:flex"
       >
-        <div data-login-logo className="login-brand" />
+        <div data-login-logo data-login-side="right" className="login-brand" />
         <div>
           <p
             data-login-text="loginEyebrow"
