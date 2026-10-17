@@ -1,3 +1,4 @@
+import { Jobs } from "../jobs/app";
 import { CompanyEmployees } from "../employees/company-employees";
 import { cloudConfigured } from "../../backend/client";
 import { createRoot, type Root } from "react-dom/client";
@@ -123,6 +124,7 @@ export function Workspace({ moduleId }: { moduleId: string }) {
       return today().slice(0, 7);
     }
   });
+  const [homeTab, setHomeTab] = useState("overview");
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("Todos");
   const [editor, setEditor] = useState<Item | null>(null);
@@ -2132,7 +2134,55 @@ export function Workspace({ moduleId }: { moduleId: string }) {
           )}
         </Section>
       )}
-      {moduleId === "home" && home()}
+      {moduleId === "home" && (
+        <>
+          <div
+            role="tablist"
+            aria-label="Seções da visão geral"
+            className="mb-6 flex gap-2 border-b border-neutral-200"
+          >
+            {[
+              ["overview", "Resumo"],
+              ["jobs", "Cargos"],
+            ].map(([id, label]) => (
+              <button
+                type="button"
+                role="tab"
+                key={id}
+                aria-selected={homeTab === id}
+                aria-controls={`home-panel-${id}`}
+                id={`home-tab-${id}`}
+                className={`px-4 py-3 text-sm ${homeTab === id ? "border-b-2 border-neutral-900 font-semibold text-neutral-900" : "text-neutral-500"}`}
+                onClick={() => {
+                  if (homeTab !== id && canLeaveWorkspace()) {
+                    setHomeTab(id);
+                    setChanged(false);
+                  }
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <div
+            role="tabpanel"
+            id={`home-panel-${homeTab}`}
+            aria-labelledby={`home-tab-${homeTab}`}
+          >
+            {homeTab === "overview" ? (
+              home()
+            ) : (
+              <Jobs
+                key={companyId}
+                data={data}
+                companyId={companyId}
+                onSaved={setData}
+                onDirtyChange={setChanged}
+              />
+            )}
+          </div>
+        </>
+      )}
       {moduleId === "chart" && reports()}
       {moduleId === "accounting" && accounting()}
       {moduleId === "accounts" && accounts()}

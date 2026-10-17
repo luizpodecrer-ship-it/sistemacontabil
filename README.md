@@ -82,3 +82,7 @@ A aba **Colaboradores**, ao lado de Atendimento e pessoal, compartilha o cadastr
 ## Identidade visual e administração
 
 **Personalização** controla o escritório; **Administração → Identidade do sistema** controla nome, logo e ícone da plataforma, com dados independentes. Logos têm limite de 500 × 500 px ou 500 × 250 px, sem distorção. No modo local, alterações ficam neste navegador; em nuvem, a migração 004 e o papel administrativo no banco controlam persistência e acesso. Veja [IDENTIDADE_VISUAL.md](docs/IDENTIDADE_VISUAL.md).
+
+## Cargos
+
+Em **Visão geral → Cargos**, selecione a empresa para cadastrar e editar cargos vinculados à CBO, requisitos e referências salariais. A consulta inclui 2.693 ocupações de uma cópia pública de agosto de 2023, com busca, filtros e paginação. Não é sincronização oficial em tempo real. Origem, limites e atualização por CSV oficial: [CARGOS_E_CBO.md](docs/CARGOS_E_CBO.md).
