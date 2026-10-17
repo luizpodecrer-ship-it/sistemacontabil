@@ -86,3 +86,7 @@ A aba **Colaboradores**, ao lado de Atendimento e pessoal, compartilha o cadastr
 ## Cargos
 
 No menu lateral, **Cargos** fica abaixo de **Visão geral**. Cadastre cargos compartilhados entre as empresas do escritório, com CBO, segmentos, requisitos e referências salariais. Ao cadastrar um colaborador, consulte esse catálogo pelos segmentos da empresa e preencha o CBO automaticamente. A consulta inclui 2.693 ocupações de uma cópia pública de agosto de 2023, com busca, filtros e paginação. Não é sincronização oficial em tempo real. Origem, limites e atualização por CSV oficial: [CARGOS_E_CBO.md](docs/CARGOS_E_CBO.md).
+
+## Sindicatos
+
+**Sindicatos** aparece abaixo de **Empresas**, com catálogo do escritório, cadastro/edição, máscaras, CEP, filtros e importação XLS/XLSX/CSV com revisão e proteção contra duplicidade. A base oficial não foi baixada: o acesso ao CNES está bloqueado neste ambiente. Fluxo de importação, fontes, limites e dependências Python: [SINDICATOS_E_CNES.md](docs/SINDICATOS_E_CNES.md).

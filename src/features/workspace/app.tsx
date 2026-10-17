@@ -1,3 +1,4 @@
+import { Unions } from "../unions/app";
 import { loadJobsData } from "../jobs/storage";
 import { Jobs } from "../jobs/app";
 import { CompanyEmployees } from "../employees/company-employees";
@@ -1112,6 +1113,7 @@ export function Workspace({ moduleId }: { moduleId: string }) {
   const names: Record<string, string> = {
     home: "Visão geral",
     jobs: "Cargos",
+    unions: "Sindicatos",
     chart: "Indicadores e relatórios",
     accounting: "Contabilidade",
     accounts: "Plano de contas",
@@ -1133,8 +1135,8 @@ export function Workspace({ moduleId }: { moduleId: string }) {
           </h1>
           <p className="text-sm text-neutral-500 mt-2">
             {def?.description ||
-              (moduleId === "jobs"
-                ? "Catálogo de cargos compartilhado entre as empresas do escritório."
+              (["jobs", "unions"].includes(moduleId)
+                ? "Cadastros compartilhados entre as empresas do escritório."
                 : "Dados vinculados à empresa, competência e origem.")}
           </p>
         </div>
@@ -1156,7 +1158,7 @@ export function Workspace({ moduleId }: { moduleId: string }) {
         Não use dados reais de clientes. Integrações oficiais e cálculos legais
         não estão ativos.
       </div>
-      {moduleId !== "jobs" && (
+      {!["jobs", "unions"].includes(moduleId) && (
         <div className="grid sm:grid-cols-[1fr_180px_auto] gap-4 items-end rounded-xl border border-neutral-200 p-4 bg-white mb-6">
           <label className="text-xs font-medium">
             Empresa
@@ -1199,7 +1201,7 @@ export function Workspace({ moduleId }: { moduleId: string }) {
           </span>
         </div>
       )}
-      {moduleId !== "jobs" && !companies.length && (
+      {!["jobs", "unions"].includes(moduleId) && !companies.length && (
         <p className="mb-6 text-sm text-neutral-500">
           Cadastre uma empresa em Empresas para iniciar os módulos operacionais.
         </p>
@@ -2140,6 +2142,9 @@ export function Workspace({ moduleId }: { moduleId: string }) {
         </Section>
       )}
       {moduleId === "home" && home()}
+      {moduleId === "unions" && (
+        <Unions data={data} onSaved={setData} onDirtyChange={setChanged} />
+      )}
       {moduleId === "jobs" && (
         <Jobs data={data} onSaved={setData} onDirtyChange={setChanged} />
       )}
