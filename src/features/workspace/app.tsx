@@ -1,3 +1,4 @@
+import { Dashboard } from "../dashboard/app";
 import { Unions } from "../unions/app";
 import { loadJobsData } from "../jobs/storage";
 import { Jobs } from "../jobs/app";
@@ -497,6 +498,14 @@ export function Workspace({ moduleId }: { moduleId: string }) {
         createdAt: editor.createdAt || at,
       };
       next.items = next.items.filter((i) => i.id !== record.id);
+      if (["tasks", "obligations"].includes(def.id)) {
+        record.values.completedAt =
+          record.values.status === "Concluído"
+            ? old?.values.status === "Concluído"
+              ? old.values.completedAt || ""
+              : today()
+            : "";
+      }
       next.items.push(record);
       if (def.id === "collections" && record.values.status === "Liquidado") {
         const origin = `collection:${record.id}`;
@@ -1137,7 +1146,9 @@ export function Workspace({ moduleId }: { moduleId: string }) {
             {def?.description ||
               (["jobs", "unions"].includes(moduleId)
                 ? "Cadastros compartilhados entre as empresas do escritório."
-                : "Dados vinculados à empresa, competência e origem.")}
+                : moduleId === "home"
+                  ? "Indicadores e acompanhamento do escritório."
+                  : "Dados vinculados à empresa, competência e origem.")}
           </p>
         </div>
         {def && (
@@ -1159,30 +1170,38 @@ export function Workspace({ moduleId }: { moduleId: string }) {
         não estão ativos.
       </div>
       {!["jobs", "unions"].includes(moduleId) && (
-        <div className="grid sm:grid-cols-[1fr_180px_auto] gap-4 items-end rounded-xl border border-neutral-200 p-4 bg-white mb-6">
-          <label className="text-xs font-medium">
-            Empresa
-            <select
-              aria-label="Empresa em contexto"
-              className={`${input} mt-2`}
-              value={companyId}
-              onChange={(e) => {
-                if (!canLeaveWorkspace()) return;
-                setCompanyId(e.target.value);
-                setEditor(null);
-                setEntryEditor(null);
-                setChanged(false);
-                setNotice("");
-              }}
-            >
-              <option value="">Selecione uma empresa</option>
-              {companies.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.values.tradeName || c.values.legalName}
-                </option>
-              ))}
-            </select>
-          </label>
+        <div
+          className={
+            moduleId === "home"
+              ? "mb-5 flex justify-end"
+              : "grid sm:grid-cols-[1fr_180px_auto] gap-4 items-end rounded-xl border border-neutral-200 p-4 bg-white mb-6"
+          }
+        >
+          {moduleId !== "home" && (
+            <label className="text-xs font-medium">
+              Empresa
+              <select
+                aria-label="Empresa em contexto"
+                className={`${input} mt-2`}
+                value={companyId}
+                onChange={(e) => {
+                  if (!canLeaveWorkspace()) return;
+                  setCompanyId(e.target.value);
+                  setEditor(null);
+                  setEntryEditor(null);
+                  setChanged(false);
+                  setNotice("");
+                }}
+              >
+                <option value="">Selecione uma empresa</option>
+                {companies.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.values.tradeName || c.values.legalName}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
           <FormField
             spec={{ key: "contextPeriod", label: "Competência", type: "month" }}
             value={period}
@@ -1194,14 +1213,16 @@ export function Workspace({ moduleId }: { moduleId: string }) {
               setChanged(false);
             }}
           />
-          <span
-            className={`text-xs rounded-lg px-3 py-3 mb-1 ${closing?.state === "Fechado" ? "bg-emerald-50 text-emerald-800" : "bg-neutral-50 text-neutral-500"}`}
-          >
-            {closing?.state || "Aberto"}
-          </span>
+          {moduleId !== "home" && (
+            <span
+              className={`text-xs rounded-lg px-3 py-3 mb-1 ${closing?.state === "Fechado" ? "bg-emerald-50 text-emerald-800" : "bg-neutral-50 text-neutral-500"}`}
+            >
+              {closing?.state || "Aberto"}
+            </span>
+          )}
         </div>
       )}
-      {!["jobs", "unions"].includes(moduleId) && !companies.length && (
+      {!["home", "jobs", "unions"].includes(moduleId) && !companies.length && (
         <p className="mb-6 text-sm text-neutral-500">
           Cadastre uma empresa em Empresas para iniciar os módulos operacionais.
         </p>
@@ -1546,68 +1567,6 @@ export function Workspace({ moduleId }: { moduleId: string }) {
         )}
       </>
     );
-  const home = () => {
-    const openTasks = contextItems.filter(
-      (i) =>
-        ["tasks", "obligations"].includes(i.module) &&
-        i.values.status !== "Concluído",
-    );
-    const docs = contextItems.filter((i) => i.module === "docs");
-    return (
-      <>
-        <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-          {[
-            ["Empresas cadastradas", companies.length],
-            ["Pendências na competência", openTasks.length],
-            ["Documentos recebidos", docs.length],
-            [
-              "Lançamentos contábeis",
-              data.entries.filter(
-                (e) => e.companyId === companyId && e.period === period,
-              ).length,
-            ],
-          ].map(([label, n]) => (
-            <div
-              key={label}
-              className="rounded-2xl border border-neutral-200 bg-white p-5"
-            >
-              <p className="text-xs text-neutral-500">{label}</p>
-              <p className="text-3xl font-semibold mt-3">{n}</p>
-            </div>
-          ))}
-        </div>
-        <Section title="Próximas ações">
-          {table(
-            ["Pendência", "Responsável", "Prazo", "Situação"],
-            openTasks
-              .sort((a, b) =>
-                (a.values.due || "").localeCompare(b.values.due || ""),
-              )
-              .map((r) => [
-                r.values.title,
-                r.values.owner,
-                r.values.due,
-                r.values.status,
-              ]),
-          )}
-        </Section>
-        <Section title="Jornada da competência">
-          <ol className="grid sm:grid-cols-4 gap-4 text-xs text-neutral-500">
-            {[
-              "1. Cadastrar empresa",
-              "2. Receber documentos",
-              "3. Processar e conferir",
-              "4. Revisar e fechar",
-            ].map((t) => (
-              <li key={t} className="border border-neutral-200 p-4 rounded-xl">
-                {t}
-              </li>
-            ))}
-          </ol>
-        </Section>
-      </>
-    );
-  };
   const accounting = () => {
     const entries = data.entries.filter(
       (e) => e.companyId === companyId && e.period === period,
@@ -2141,7 +2100,9 @@ export function Workspace({ moduleId }: { moduleId: string }) {
           )}
         </Section>
       )}
-      {moduleId === "home" && home()}
+      {moduleId === "home" && (
+        <Dashboard data={data} companies={companies} period={period} />
+      )}
       {moduleId === "unions" && (
         <Unions data={data} onSaved={setData} onDirtyChange={setChanged} />
       )}
