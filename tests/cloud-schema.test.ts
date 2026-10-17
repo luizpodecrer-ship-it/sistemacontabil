@@ -33,6 +33,15 @@ test("Migração PostgreSQL: autenticação, isolamento entre escritórios, revi
     ),
   );
   await db.exec(
+    await readFile(
+      new URL(
+        "../supabase/migrations/003_import_companies.sql",
+        import.meta.url,
+      ),
+      "utf8",
+    ),
+  );
+  await db.exec(
     "grant select,insert,update,delete on all tables in schema public to authenticated;set role authenticated;",
   );
   await assert.rejects(() => db.query("select public.ensure_own_workspace()"));
@@ -60,6 +69,21 @@ test("Migração PostgreSQL: autenticação, isolamento entre escritórios, revi
       "insert into public.companies(workspace_id,id,cnpj,payload)values($1,$2,$3,$4)",
       [wid, "bypass", "123", "{}"],
     ),
+  );
+  await assert.rejects(() =>
+    db.query("select public.import_companies($1::jsonb,$2::jsonb)", [
+      JSON.stringify([
+        { id: "batch-valid", values: { cnpj: "04.252.011/0001-10" } },
+        { id: "batch-invalid", values: { cnpj: "123" } },
+      ]),
+      "{}",
+    ]),
+  );
+  assert.equal(
+    (await db.query("select * from public.companies where id='batch-valid'"))
+      .rows.length,
+    0,
+    "batch must roll back all writes",
   );
   await db.query("select public.save_operational_state($1,$2::jsonb)", [
     0,

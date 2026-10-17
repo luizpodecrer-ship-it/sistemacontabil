@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { FormField, type FieldSpec } from "@/components/ui/form-field";
 import { digits, cnpjKey, formatCnae, validPhone } from "@/lib/formats";
+import { CompanyImport } from "./company-import";
 import { CnpjLookup } from "./cnpj-lookup";
 import type { CnpjResult } from "./cnpj";
 import {
@@ -45,6 +46,7 @@ import {
   address,
   contacts,
   activityFields,
+  predominantActivityFields,
   regimeFields,
   peopleFields,
   branchFields,
@@ -290,6 +292,7 @@ function Section({
   );
 }
 function CompanyApp() {
+  const [importing, setImporting] = useState(false);
   const [records, setRecords] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
@@ -770,7 +773,7 @@ function CompanyApp() {
       <strong>Cadastro em validação.</strong>{" "}
       {cloudConfigured
         ? "Dados e anexos vinculados ao escritório em nuvem autenticado. Use dados de teste até a homologação."
-        : "Dados e anexos ficam somente neste navegador, sem compartilhamento ou backup no servidor. Use dados de teste. O CEP consulta o ViaCEP; demais dados não são transmitidos."}
+        : "Dados e anexos ficam somente neste navegador, sem compartilhamento ou backup no servidor. O CEP consulta o ViaCEP e a consulta de CNPJ usa a BrasilAPI. Na importação, o arquivo XLS é enviado ao leitor de planilhas para conversão, sem armazenamento do arquivo."}
     </div>
   );
   if (!editing) {
@@ -798,16 +801,29 @@ function CompanyApp() {
               Cadastros, estabelecimentos e responsáveis em um só lugar.
             </p>
           </div>
-          <button
-            id="new-company"
-            className={action}
-            onClick={() => open(newCompany())}
-          >
-            <Plus className="w-4 h-4" />
-            Nova empresa
-          </button>
+          <div className="flex flex-wrap gap-3">
+            <button className={action} onClick={() => setImporting((v) => !v)}>
+              <Download className="w-4 h-4" />
+              Importar empresas
+            </button>
+            <button
+              id="new-company"
+              className={action}
+              onClick={() => open(newCompany())}
+            >
+              <Plus className="w-4 h-4" />
+              Nova empresa
+            </button>
+          </div>
         </div>
         {banner}
+        {importing && (
+          <CompanyImport
+            records={records}
+            onClose={() => setImporting(false)}
+            onImported={async () => setRecords(await listCompanies())}
+          />
+        )}
         <div className="flex flex-wrap gap-3 justify-between mb-6">
           <div className="relative w-full sm:max-w-sm">
             <Search
@@ -1192,8 +1208,17 @@ function CompanyApp() {
               {repeated("phones", "Telefones", phoneFields)}
             </>
           )}
-          {tab === 2 &&
-            repeated("activities", "Atividades econômicas", activityFields)}
+          {tab === 2 && (
+            <>
+              <Section
+                title="CNAE preponderante"
+                description="Informação independente do CNAE principal; confira conforme os documentos da empresa."
+              >
+                {grid(predominantActivityFields)}
+              </Section>
+              {repeated("activities", "Atividades econômicas", activityFields)}
+            </>
+          )}
           {tab === 3 &&
             repeated("regimes", "Enquadramentos tributários", regimeFields)}
           {tab === 4 && (

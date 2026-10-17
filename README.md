@@ -70,3 +70,7 @@ Modo Supabase opcional: consulte [docs/CONFIGURAR_NUVEM.md](docs/CONFIGURAR_NUVE
 ## Cadastro: referências visuais e consulta CNPJ
 
 A evolução do cadastro inclui CPF/CNPJ, telefones em lista, dados complementares e configurações de pessoal por vigência. A consulta CNPJ usa dados públicos da BrasilAPI, preenche vazios e oferece revisão explícita para diferenças; indisponibilidade não impede cadastro manual. Consulte [docs/CADASTRO_REFERENCIAS.md](docs/CADASTRO_REFERENCIAS.md) para mapeamento, migração de dados antigos, limites da fonte e instruções da migração Supabase 002.
+
+## Importação de empresas
+
+Na página Empresas, o botão **Importar empresas** lê o relatório XLS com as sete colunas do cadastro ou o JSON preparado. Cadastros novos são rascunhos e inscrições repetidas no arquivo ficam separadas para revisão. No modo local os registros ficam no IndexedDB desse navegador. Veja [o guia de importação](docs/IMPORTACAO_EMPRESAS.md) para formato, limites, conversão Python na Vercel e migração opcional do Supabase.

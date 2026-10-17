@@ -120,3 +120,20 @@ export async function cloudMutate(change: (data: Data) => void): Promise<Data> {
     );
   return next;
 }
+
+export async function cloudImportCompanies(companies: Company[]) {
+  const id = await workspaceId();
+  const bodies = await Promise.all(companies.map((c) => pack(c, id)));
+  const expected_versions = Object.fromEntries(
+    companies.map((c) => [c.id, companyVersions.get(c.id) || ""]),
+  );
+  const { error } = await cloud!.rpc("import_companies", {
+    bodies,
+    expected_versions,
+  });
+  if (error)
+    throw new Error(
+      "Importação não salva na nuvem. Confira as migrações do banco e possíveis alterações em outra aba.",
+    );
+  for (const c of companies) companyVersions.set(c.id, c.updatedAt || "");
+}

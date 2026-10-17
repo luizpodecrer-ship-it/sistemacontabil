@@ -106,9 +106,11 @@ export const identity: FieldSpec[] = [
   opts("officeStatus", "Situação no escritório", [
     "Em implantação",
     "Ativa",
+    "Inativa",
     "Suspensa",
     "Encerrada",
   ]),
+  field("inactiveAt", "Data de inativação", "", { type: "date" }),
   field(
     "notes",
     "Observações cadastrais",
@@ -406,6 +408,17 @@ export function normalizeCompany(company: Company): Company {
     esocialPeriods: company.esocialPeriods || [],
   };
 }
+export const predominantActivityFields: FieldSpec[] = [
+  field("predominantCnae", "CNAE preponderante", "0000-0/00", {
+    mask: "cnae",
+    hint: "Informação própria; não presume o CNAE principal nem o regime tributário.",
+  }),
+  field(
+    "predominantCnaeDescription",
+    "Descrição do CNAE preponderante",
+    "Descrição conforme cadastro ou arquivo de origem",
+  ),
+];
 export const uid = () => crypto.randomUUID();
 export function newCompany(): Company {
   return {
@@ -501,6 +514,7 @@ export function validateCompany(
     ...serviceFields,
     ...matrixFields,
     ...personnelBase,
+    ...predominantActivityFields,
   ];
   all.forEach((spec) => {
     const e = validateField(
@@ -701,6 +715,7 @@ export function errorTab(key: string): number {
     personnelBase.some((f) => f.key === key)
   )
     return 7;
+  if (predominantActivityFields.some((f) => f.key === key)) return 2;
   if (key.startsWith("activities")) return 2;
   if (key.startsWith("regimes")) return 3;
   if (key.startsWith("people")) return 4;
