@@ -1,3 +1,4 @@
+import { openModule } from "./navigation-helper";
 import { selectOption } from "./select-helper";
 import { test, expect, type Page } from "@playwright/test";
 async function createCompany(page: Page, name: string, cnpj: string) {
@@ -103,9 +104,7 @@ test("Catálogo compartilhado: catálogo CBO, validação, salários, requisitos
     page.getByRole("cell", { name: "Porteiro da recepção", exact: true }),
   ).toBeVisible();
   await page.getByLabel("Buscar cargos", { exact: true }).fill("");
-  await page
-    .getByRole("button", { name: "Processos e tarefas", exact: true })
-    .click();
+  await openModule(page, "Processos e tarefas");
   await expect(
     page.getByRole("tab", { name: "Cargos", exact: true }),
   ).toHaveCount(0);

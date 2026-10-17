@@ -1,3 +1,4 @@
+import { openModule } from "./navigation-helper";
 import { selectOption } from "./select-helper";
 import { test, expect, type Page } from "@playwright/test";
 const seed = {
@@ -43,7 +44,7 @@ async function start(page: Page) {
   ).toBeVisible();
 }
 async function nav(page: Page, name: string) {
-  await page.getByRole("button", { name, exact: true }).click();
+  await openModule(page, name);
   await expect(
     page.getByText("Carregando operação…", { exact: true }),
   ).not.toBeVisible();

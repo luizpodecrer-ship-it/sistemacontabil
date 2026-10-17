@@ -1,3 +1,4 @@
+import { openModule } from "./navigation-helper";
 import { selectOption } from "./select-helper";
 import { test, expect, type Page } from "@playwright/test";
 async function enter(page: Page) {
@@ -27,9 +28,7 @@ test("Escritório: prévia ampliada, formatos máximos, branco e proporção per
   page,
 }) => {
   await enter(page);
-  await page
-    .getByRole("button", { name: "Personalização", exact: true })
-    .click();
+  await openModule(page, "Personalização do escritório");
   await expect(
     page.getByRole("heading", { name: "Seu escritório, sua identidade." }),
   ).toBeVisible();
@@ -78,9 +77,7 @@ test("Escritório: prévia ampliada, formatos máximos, branco e proporção per
   );
   await page.reload();
   await enter(page);
-  await page
-    .getByRole("button", { name: "Personalização", exact: true })
-    .click();
+  await openModule(page, "Personalização do escritório");
   await expect(
     page.getByLabel("Nome do escritório", { exact: true }),
   ).toHaveValue("Escritório de teste");
@@ -102,9 +99,7 @@ test("Administração separa marca da plataforma, aplica logo, ícone e favicon 
   page,
 }) => {
   await enter(page);
-  await page
-    .getByRole("button", { name: "Identidade do sistema", exact: true })
-    .click();
+  await openModule(page, "Identidade do sistema");
   await expect(
     page.getByText(/Demonstração local da administração/),
   ).toBeVisible();
@@ -146,13 +141,13 @@ test("Administração separa marca da plataforma, aplica logo, ícone e favicon 
   await page
     .getByRole("button", { name: "Expandir menu", exact: true })
     .click();
-  await page
-    .getByRole("button", { name: "Personalização", exact: true })
-    .click();
+  await openModule(page, "Personalização do escritório");
   await expect(
     page.getByLabel("Nome do escritório", { exact: true }),
   ).toHaveValue("Queiroz Contabilidade");
-  await page.getByRole("button", { name: /Luiz Queiroz/ }).click();
+  await page
+    .getByRole("button", { name: "Sair do sistema", exact: true })
+    .click();
   await expect(page.locator("[data-login-logo] img").first()).toBeVisible();
   await page.reload();
   await expect(page).toHaveTitle("Plataforma Teste — Gestão contábil");
@@ -162,9 +157,7 @@ test("Login personalizado e ícone transparente têm fundo correto; links de dem
   page,
 }) => {
   await enter(page);
-  await page
-    .getByRole("button", { name: "Identidade do sistema", exact: true })
-    .click();
+  await openModule(page, "Identidade do sistema");
   const blackIcon = await page.evaluate(() => {
     const c = document.createElement("canvas");
     c.width = c.height = 120;
@@ -245,7 +238,9 @@ test("Login personalizado e ícone transparente têm fundo correto; links de dem
   await page
     .getByRole("button", { name: "Expandir menu", exact: true })
     .click();
-  await page.getByRole("button", { name: /Luiz Queiroz/ }).click();
+  await page
+    .getByRole("button", { name: "Sair do sistema", exact: true })
+    .click();
   await expect(
     page.getByRole("heading", {
       name: "Seu escritório conectado",

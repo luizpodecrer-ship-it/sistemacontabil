@@ -120,3 +120,58 @@ select.form-control:has(option[value=""]:checked) { color:#737373; }
 .system-select-option[aria-selected="true"] { font-weight:600; }
 .system-select-option[aria-disabled="true"] { opacity:.45; cursor:not-allowed; }
 @media(max-width:767px) { .system-select-option { min-height:44px; } .system-select-popup input { font-size:16px; } }
+
+/* Nexopen navigation: direct links and one expanded work area. */
+.rail { width:272px; background:#fff; height:100dvh; min-height:0; overflow:hidden; }
+.rail .brand-row { position:relative; min-height:84px; padding:18px 16px; gap:10px; }
+.rail .nav-link, .nav-group-trigger { display:flex; align-items:center; gap:11px; width:100%; min-height:40px; padding:9px 12px; border:0; border-radius:12px; text-align:left; font-size:13px; line-height:1.5; color:#737373; font-weight:500; background:transparent; transition:background-color .18s,color .18s; }
+.rail .nav-link [data-label], .nav-group-trigger [data-label] { flex:1; min-width:0; }
+.rail .nav-link:hover, .nav-group-trigger:hover { background:#fafafa; color:#171717; }
+.rail .nav-link.active { background:#f3f3f3; color:#171717; font-weight:600; border-left:0; }
+.rail button:focus-visible { outline:2px solid #737373; outline-offset:-2px; }
+.sidebar-search { padding:0 12px 12px; }
+.sidebar-navigation { flex:1; min-height:0; overflow-y:auto; overscroll-behavior:contain; padding:0 12px 16px; scrollbar-width:thin; }
+.direct-navigation { display:grid; gap:3px; }
+.nav-section-label { margin:22px 12px 10px; color:#a3a3a3; font-size:10px; letter-spacing:.12em; text-transform:uppercase; }
+.nav-group { margin-top:3px; }
+.nav-group-trigger.contains-active { color:#171717; }
+.nav-group-trigger [data-group-chevron] { flex:none; transform:rotate(180deg); transition:transform .2s; }
+.nav-group-trigger[aria-expanded="true"] [data-group-chevron] { transform:rotate(270deg); }
+.nav-group-items { margin:4px 0 9px 19px; padding-left:9px; border-left:1px solid #e5e5e5; }
+.nav-group-items[hidden] { display:none; }
+.rail .nav-group-items .nav-link { min-height:38px; font-size:12px; padding:8px 9px; }
+.rail .nav-group-items .nav-link svg { width:14px; height:14px; }
+.rail .user-row { margin:8px 12px 12px; padding:10px 5px; border:0; border-radius:12px; min-height:56px; }
+.rail .user-row:hover { background:#fafafa; }
+.rail.collapsed { width:76px; }
+.rail.collapsed .brand-row { padding:16px 8px 8px; flex-direction:column; gap:8px; }
+.rail.collapsed .sidebar-navigation, .rail.collapsed .sidebar-search { padding-left:12px; padding-right:12px; }
+.rail.collapsed .nav-link, .rail.collapsed [data-group] { display:flex; justify-content:center; padding:10px; }
+.rail.collapsed .nav-group-items, .rail.collapsed [data-group-chevron] { display:none; }
+.rail.collapsed .nav-section-label { display:none; }
+.rail.collapsed .direct-navigation { padding-bottom:10px; margin-bottom:10px; border-bottom:1px solid #f0f0f0; }
+.rail.collapsed .user-row { padding:8px 0; margin-inline:12px; }
+.close-mobile, .nav-backdrop { display:none; }
+@media(max-width:767px) {
+ .nav-drawer-open { overflow:hidden; }
+ .rail, .rail.collapsed { position:fixed; inset:0 auto 0 0; width:min(288px,calc(100vw - 48px)); z-index:60; box-shadow:10px 0 40px #00000018; }
+ .rail.mobile-hidden { display:none; }
+ .rail.mobile-open { display:flex; }
+ .rail .brand-row, .rail.collapsed .brand-row { flex-direction:row; padding:18px 42px 18px 16px; min-height:84px; }
+ .rail #collapse { display:none; }
+ .rail .close-mobile { display:grid; place-items:center; position:absolute; right:6px; top:20px; width:36px; height:44px; color:#737373; font-size:24px; }
+ .nav-backdrop:not([hidden]) { display:block; position:fixed; inset:0; z-index:59; background:#0004; }
+ .rail.collapsed [data-label] { display:initial; }
+ .rail.collapsed [data-platform-logo] { display:flex; }
+ .rail.collapsed .platform-icon.with-logo { display:none; }
+ .rail.collapsed .nav-link, .rail.collapsed [data-group] { justify-content:flex-start; padding:10px 12px; }
+ .rail .nav-link, .nav-group-trigger, .rail .nav-group-items .nav-link { min-height:44px; }
+ .rail.collapsed .nav-group-items:not([hidden]) { display:block; }
+ .rail.collapsed [data-group-chevron] { display:block; }
+ .rail.collapsed .nav-section-label { display:block; }
+ .rail.collapsed .direct-navigation { padding-bottom:0; margin-bottom:0; border:0; }
+}
+
+.nav-group-trigger.current-group { color:#171717; font-weight:600; }
+.rail #collapse svg { rotate:0deg; transition:rotate .2s; }
+.rail.collapsed #collapse svg { rotate:180deg; }

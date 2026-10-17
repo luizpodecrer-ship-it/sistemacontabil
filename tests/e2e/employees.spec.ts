@@ -1,3 +1,4 @@
+import { openModule } from "./navigation-helper";
 import { selectOption } from "./select-helper";
 import { test, expect } from "@playwright/test";
 async function enter(page: any) {
@@ -150,9 +151,7 @@ test("Colaboradores por empresa: CTPS derivada do CPF, dependentes, persistênci
       exact: true,
     }),
   ).toBeVisible();
-  await page
-    .getByRole("button", { name: "Pessoal e vínculos", exact: true })
-    .click();
+  await openModule(page, "Pessoal e vínculos");
   await selectOption(page.getByLabel("Empresa em contexto", { exact: true }), {
     label: "Empresa A Teste",
   });
