@@ -25,6 +25,6 @@ Instalações que já configuraram Supabase precisam aplicar também `supabase/m
 
 ## Exibição dos cadastros
 
-A página Empresas exibe uma tabela com Código, Razão Social, Tipo de Inscrição, Inscrição, Status, Data de Inativação e CNAE Preponderante. Status representa a situação no escritório (por exemplo, Ativa/Inativa), independentemente da conclusão do cadastro. O CNAE preponderante é exibido somente quando informado, sem inferir o CNAE principal.
+A página Empresas exibe uma tabela com Código, Razão Social, Tipo de Insc, Inscrição, Status, Data de Inativação e CNAE. Status representa a situação no escritório (por exemplo, Ativa/Inativa), independentemente da conclusão do cadastro. O CNAE preponderante é exibido somente quando informado, sem inferir o CNAE principal.
 
-Clique na razão social ou no menu de três pontos para abrir ou editar o cadastro. A busca e o filtro limitam as linhas exibidas; a seleção geral alcança somente essas linhas. A barra de seleção permite exportar as empresas escolhidas em CSV ou limpar a seleção. No celular, a tabela tem rolagem horizontal para preservar todas as colunas.
+Clique na razão social ou no menu de três pontos para abrir ou editar o cadastro. A busca e o filtro limitam as linhas exibidas; a tabela não possui caixas de seleção ou ações em lote. No celular, a tabela tem rolagem horizontal para preservar todas as colunas.

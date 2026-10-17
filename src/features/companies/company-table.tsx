@@ -1,22 +1,16 @@
-import { useEffect, useRef, useState } from "react";
-import {
-  Building2,
-  MoreHorizontal,
-  Download,
-  ArrowUpRight,
-  Pencil,
-} from "lucide-react";
+import { useEffect, useState } from "react";
+import { Building2, MoreHorizontal, ArrowUpRight, Pencil } from "lucide-react";
 import { formatCnpj, formatCpf, formatCnae } from "@/lib/formats";
 import type { Company } from "./model";
 
 const columns = [
   "Código",
   "Razão Social",
-  "Tipo de Inscrição",
+  "Tipo de Insc",
   "Inscrição",
   "Status",
   "Data de Inativação",
-  "CNAE Preponderante",
+  "CNAE",
 ];
 function cells(c: Company) {
   const v = c.values;
@@ -34,13 +28,6 @@ function cells(c: Company) {
     v.predominantCnae ? formatCnae(v.predominantCnae) : "",
   ];
 }
-function csvCell(value: string) {
-  return (
-    '"' +
-    (/^[=+@\-\t\r\n]/.test(value) ? "'" + value : value).replaceAll('"', '""') +
-    '"'
-  );
-}
 export function CompanyTable({
   rows,
   onOpen,
@@ -48,21 +35,11 @@ export function CompanyTable({
   rows: Company[];
   onOpen: (company: Company) => void;
 }) {
-  const [selected, setSelected] = useState<string[]>([]);
   const [menu, setMenu] = useState<string | null>(null);
-  const allRef = useRef<HTMLInputElement>(null);
   const visible = rows.map((c) => c.id).join("|");
   useEffect(() => {
-    const ids = new Set(rows.map((c) => c.id));
-    setSelected((old) => old.filter((id) => ids.has(id)));
     setMenu(null);
   }, [visible]);
-  const chosen = rows.filter((c) => selected.includes(c.id));
-  const all = rows.length > 0 && chosen.length === rows.length;
-  useEffect(() => {
-    if (allRef.current)
-      allRef.current.indeterminate = chosen.length > 0 && !all;
-  }, [chosen.length, all]);
   useEffect(() => {
     if (!menu) return;
     const close = (e: PointerEvent) => {
@@ -75,21 +52,6 @@ export function CompanyTable({
     document.addEventListener("pointerdown", close);
     return () => document.removeEventListener("pointerdown", close);
   }, [menu]);
-  function exportSelected() {
-    const csv =
-      "\uFEFF" +
-      [columns, ...chosen.map(cells)]
-        .map((row) => row.map(csvCell).join(";"))
-        .join("\r\n");
-    const url = URL.createObjectURL(
-      new Blob([csv], { type: "text/csv;charset=utf-8" }),
-    );
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "empresas-selecionadas.csv";
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-  }
   return (
     <div
       onKeyDown={(e) => {
@@ -102,31 +64,6 @@ export function CompanyTable({
         }
       }}
     >
-      {!!chosen.length && (
-        <div
-          className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-neutral-900 px-5 py-3 text-white"
-          aria-label="Ações em lote"
-        >
-          <p className="text-sm" role="status">
-            {chosen.length} empresa(s) selecionada(s)
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={exportSelected}
-              className="flex items-center gap-2 rounded-lg border border-neutral-700 px-3 py-2 text-xs hover:bg-neutral-800"
-            >
-              <Download className="h-3.5 w-3.5" />
-              Exportar selecionadas
-            </button>
-            <button
-              onClick={() => setSelected([])}
-              className="rounded-lg border border-neutral-700 px-3 py-2 text-xs hover:bg-neutral-800"
-            >
-              Limpar seleção
-            </button>
-          </div>
-        </div>
-      )}
       <div
         id="companies"
         className="relative overflow-hidden rounded-2xl border border-neutral-200 bg-white"
@@ -138,29 +75,31 @@ export function CompanyTable({
           className="overflow-x-auto focus-visible:outline-2 focus-visible:outline-neutral-500"
         >
           <table
-            className="w-full min-w-[1100px] text-sm text-left"
+            className="w-full min-w-[1050px] text-sm text-left"
             aria-label="Empresas cadastradas"
           >
+            <colgroup>
+              <col className="w-16" />
+              <col />
+              <col className="w-28" />
+              <col className="w-40" />
+              <col className="w-24" />
+              <col className="w-36" />
+              <col className="w-28" />
+              <col className="w-14" />
+            </colgroup>
             <thead>
               <tr className="border-b border-neutral-200 bg-neutral-50 text-[10px] uppercase tracking-wider text-neutral-500">
-                <th scope="col" className="w-12 px-4 py-3">
-                  <input
-                    ref={allRef}
-                    type="checkbox"
-                    aria-label="Selecionar todas as empresas exibidas"
-                    checked={all}
-                    onChange={() =>
-                      setSelected(all ? [] : rows.map((c) => c.id))
-                    }
-                    className="h-4 w-4 accent-neutral-900"
-                  />
-                </th>
                 {columns.map((label) => (
-                  <th scope="col" key={label} className="px-4 py-3 font-medium">
+                  <th
+                    scope="col"
+                    key={label}
+                    className="whitespace-nowrap px-3 py-3 font-medium"
+                  >
                     {label}
                   </th>
                 ))}
-                <th scope="col" className="px-4 py-3">
+                <th scope="col" className="px-3 py-3">
                   <span className="sr-only">Ações</span>
                 </th>
               </tr>
@@ -168,33 +107,12 @@ export function CompanyTable({
             <tbody className="divide-y divide-neutral-100">
               {rows.map((c) => {
                 const values = cells(c);
-                const checked = selected.includes(c.id);
                 return (
-                  <tr
-                    key={c.id}
-                    className={
-                      checked ? "bg-neutral-50" : "hover:bg-neutral-50/70"
-                    }
-                  >
-                    <td className="px-4 py-4">
-                      <input
-                        type="checkbox"
-                        aria-label={`Selecionar empresa ${c.values.code || c.values.legalName}`}
-                        checked={checked}
-                        onChange={() =>
-                          setSelected((old) =>
-                            checked
-                              ? old.filter((id) => id !== c.id)
-                              : [...old, c.id],
-                          )
-                        }
-                        className="h-4 w-4 accent-neutral-900"
-                      />
-                    </td>
-                    <td className="px-4 py-4 text-xs tabular-nums text-neutral-500">
+                  <tr key={c.id} className="hover:bg-neutral-50/70">
+                    <td className="px-3 py-3 text-xs tabular-nums text-neutral-500">
                       {values[0] || "—"}
                     </td>
-                    <td className="px-4 py-4">
+                    <td className="px-3 py-3">
                       <div className="flex items-center gap-3">
                         <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-neutral-100 text-neutral-500">
                           <Building2
@@ -203,7 +121,7 @@ export function CompanyTable({
                             aria-hidden="true"
                           />
                         </span>
-                        <div className="min-w-[200px] max-w-sm">
+                        <div className="min-w-[220px] break-words">
                           <button
                             onClick={() => onOpen(c)}
                             className="text-left font-medium text-neutral-900 hover:underline focus-visible:underline"
@@ -219,29 +137,29 @@ export function CompanyTable({
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-4 text-xs text-neutral-500">
+                    <td className="px-3 py-3 text-xs text-neutral-500">
                       {values[2]}
                     </td>
-                    <td className="whitespace-nowrap px-4 py-4 text-xs tabular-nums text-neutral-500">
+                    <td className="whitespace-nowrap px-3 py-3 text-xs tabular-nums text-neutral-500">
                       {values[3] || "—"}
                     </td>
-                    <td className="px-4 py-4">
+                    <td className="px-3 py-3">
                       <span
                         className={`whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-medium ${values[4] === "Ativa" ? "bg-emerald-50 text-emerald-700" : values[4] === "Inativa" || values[4] === "Encerrada" ? "bg-neutral-100 text-neutral-600" : "bg-amber-50 text-amber-800"}`}
                       >
                         {values[4] || "Não informado"}
                       </span>
                     </td>
-                    <td className="whitespace-nowrap px-4 py-4 text-xs tabular-nums text-neutral-500">
+                    <td className="whitespace-nowrap px-3 py-3 text-xs tabular-nums text-neutral-500">
                       {values[5] || "—"}
                     </td>
                     <td
-                      className="px-4 py-4 text-xs tabular-nums text-neutral-500"
+                      className="px-3 py-3 text-xs tabular-nums text-neutral-500"
                       title={c.values.predominantCnaeDescription}
                     >
                       {values[6] || "—"}
                     </td>
-                    <td className="px-4 py-4" data-company-actions>
+                    <td className="px-3 py-3" data-company-actions>
                       <button
                         id={`company-actions-${c.id}`}
                         aria-label={`Ações da empresa ${c.values.code || c.values.legalName}`}
