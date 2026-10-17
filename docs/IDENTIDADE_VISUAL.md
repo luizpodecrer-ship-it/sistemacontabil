@@ -50,3 +50,13 @@ A marca do sistema tem leitura pública limitada aos dados de apresentação, ne
 A configuração do escritório usa o escritório proprietário da sessão autenticada, sem aceitar um identificador de outro escritório enviado pelo cliente. Não usa o localStorage como fonte em modo nuvem. Alterações concorrentes não sobrescrevem silenciosamente a revisão anterior.
 
 Verificações: testes PostgreSQL com PGlite para permissões, isolamento e concorrência; testes de limites/contraste; testes de navegador para upload, branco, persistência, menu, favicon e responsividade. A integração com um Supabase de produção não foi executada neste ambiente.
+
+## Personalizar a área de login
+
+Em **Administração → Identidade do sistema → Personalizar área de login**, edite título e subtítulo do formulário, botão de entrada, destaque e título do painel lateral, descrição e textos de rodapé. É possível enviar um logo exclusivo para a entrada, nos mesmos limites de imagem. Sem logo próprio, será utilizado o logo do sistema e, na falta dele, o ícone ou nome. A edição mostra uma prévia antes de salvar.
+
+O fundo do ícone do menu e o fundo do logo da entrada são independentes da imagem. O padrão é branco, corrigindo a exibição de símbolos pretos transparentes. Para uma marca branca, escolha fundo escuro. O painel lateral também tem cor própria, com contraste do texto ajustado automaticamente. As imagens mantêm proporção e não recebem filtros ou recortes.
+
+Os links “Ver Dot Pattern” e “Ver Dock” foram removidos da interface; os componentes de demonstração não foram apagados. A personalização altera a apresentação da entrada, preservando a autenticação e as mensagens obrigatórias da demonstração.
+
+Instalações com Supabase precisam aplicar também **`supabase/migrations/005_login_branding.sql`**, após a 004. A migração mantém a permissão administrativa, valida os novos textos/cores/logos e preserva campos de login quando um cliente anterior salva apenas a marca principal. A interface confere a versão suportada antes de enviar uma alteração global; sem a atualização 005, não informa que os novos campos foram salvos.

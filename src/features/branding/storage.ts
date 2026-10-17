@@ -3,6 +3,7 @@ import {
   defaultOffice,
   defaultPlatform,
   normalizeBrand,
+  ink,
   type OfficeBrand,
   type PlatformBrand,
 } from "./model";
@@ -64,6 +65,13 @@ export async function saveBrand(
     );
     return;
   }
+  if (platform) {
+    const capability = await cloud!.rpc("platform_branding_version");
+    if (capability.error || capability.data !== 2)
+      throw new Error(
+        "A personalização do login requer a atualização 005 do banco. Nenhuma alteração foi enviada.",
+      );
+  }
   const { error } = await cloud!.rpc(
     platform ? "save_platform_brand" : "save_workspace_brand",
     {
@@ -115,6 +123,8 @@ export function applyPlatform(brand: PlatformBrand) {
     .querySelectorAll<HTMLElement>("[data-platform-icon]")
     .forEach((el) => {
       el.replaceChildren();
+      el.classList.toggle("has-custom-icon", Boolean(brand.icon));
+      el.style.backgroundColor = brand.icon ? brand.iconBackground : "#171717";
       if (brand.icon) {
         const image = document.createElement("img");
         image.src = brand.icon;
@@ -122,5 +132,51 @@ export function applyPlatform(brand: PlatformBrand) {
         image.className = "h-full w-full object-contain";
         el.append(image);
       } else el.textContent = brand.name.trim().charAt(0).toLowerCase();
+    });
+  applyLogin(brand);
+}
+
+export function applyLogin(brand: PlatformBrand) {
+  document
+    .querySelectorAll<HTMLElement>("[data-login-text]")
+    .forEach((node) => {
+      const key = node.dataset.loginText as keyof PlatformBrand;
+      const value =
+        key === "loginButton" &&
+        node.hasAttribute("data-login-cloud") &&
+        brand[key] === defaultPlatform.loginButton
+          ? "Entrar"
+          : brand[key];
+      if (typeof value === "string") {
+        node.textContent = value;
+        node.style.whiteSpace = "pre-line";
+        node.style.overflowWrap = "anywhere";
+      }
+    });
+  document
+    .querySelectorAll<HTMLElement>("[data-login-panel]")
+    .forEach((node) => {
+      node.style.backgroundColor = brand.loginPanelColor;
+      node.style.color = ink(brand.loginPanelColor);
+      node
+        .querySelectorAll<HTMLElement>("[data-login-text]")
+        .forEach((text) => {
+          text.style.color = "inherit";
+        });
+    });
+  document
+    .querySelectorAll<HTMLElement>("[data-login-logo]")
+    .forEach((node) => {
+      node.replaceChildren();
+      node.style.backgroundColor = brand.loginLogoBackground;
+      node.style.color = ink(brand.loginLogoBackground);
+      const url = brand.loginLogo || brand.logo || brand.icon;
+      if (url) {
+        const img = document.createElement("img");
+        img.src = url;
+        img.alt = `Logo ${brand.name} na entrada`;
+        img.className = "h-full w-full object-contain";
+        node.append(img);
+      } else node.textContent = brand.name;
     });
 }

@@ -6,7 +6,58 @@ export type OfficeBrand = {
   logo: string;
   logoFormat: LogoFormat;
 };
-export type PlatformBrand = {
+export type LoginSettings = {
+  loginTitle: string;
+  loginSubtitle: string;
+  loginEyebrow: string;
+  loginHeadline: string;
+  loginDescription: string;
+  loginFooter: string;
+  loginFormFooter: string;
+  loginButton: string;
+  loginLogo: string;
+  loginLogoFormat: LogoFormat;
+  loginPanelColor: string;
+  loginLogoBackground: string;
+  iconBackground: string;
+};
+export const defaultLogin: LoginSettings = {
+  loginTitle: "Bom ter você de volta.",
+  loginSubtitle: "Um novo dia para simplificar a sua rotina.",
+  loginEyebrow: "Menos dispersão. Mais clareza.",
+  loginHeadline: "O seu escritório.\nA operação inteira.\nEm sintonia.",
+  loginDescription:
+    "Empresas, documentos e prazos conectados em um espaço pensado para quem cuida de cada detalhe.",
+  loginFooter: "Clareza para decidir. Espaço para crescer.",
+  loginFormFooter: "",
+  loginButton: "Explorar a prévia",
+  loginLogo: "",
+  loginLogoFormat: "horizontal",
+  loginPanelColor: "#171717",
+  loginLogoBackground: "#ffffff",
+  iconBackground: "#ffffff",
+};
+export const loginTexts = [
+  { key: "loginTitle", label: "Título do formulário", max: 120 },
+  { key: "loginSubtitle", label: "Subtítulo do formulário", max: 240 },
+  { key: "loginButton", label: "Texto do botão de entrada", max: 60 },
+  { key: "loginEyebrow", label: "Texto de destaque do painel", max: 120 },
+  {
+    key: "loginHeadline",
+    label: "Título do painel lateral",
+    max: 240,
+    multiline: true,
+  },
+  {
+    key: "loginDescription",
+    label: "Descrição do painel lateral",
+    max: 600,
+    multiline: true,
+  },
+  { key: "loginFormFooter", label: "Texto abaixo do formulário", max: 200 },
+  { key: "loginFooter", label: "Texto do rodapé do painel", max: 200 },
+] as const;
+export type PlatformBrand = LoginSettings & {
   name: string;
   color: string;
   logo: string;
@@ -21,6 +72,7 @@ export const defaultOffice: OfficeBrand = {
   logoFormat: "square",
 };
 export const defaultPlatform: PlatformBrand = {
+  ...defaultLogin,
   name: "Nexo",
   color: "#171717",
   logo: "",
@@ -82,15 +134,33 @@ export function normalizeBrand<T extends OfficeBrand | PlatformBrand>(
   for (const key of Object.keys(defaults)) {
     const v = value[key];
     if (typeof v !== "string") continue;
-    if (key === "color" && !/^#[0-9a-f]{6}$/i.test(v)) continue;
     if (
-      ["logo", "icon"].includes(key) &&
+      (key === "color" ||
+        ["loginPanelColor", "loginLogoBackground", "iconBackground"].includes(
+          key,
+        )) &&
+      !/^#[0-9a-f]{6}$/i.test(v)
+    )
+      continue;
+    if (
+      ["logo", "icon", "loginLogo"].includes(key) &&
       v &&
       !/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(v)
     )
       continue;
-    if (key === "logoFormat" && !["square", "horizontal"].includes(v)) continue;
+    if (
+      ["logoFormat", "loginLogoFormat"].includes(key) &&
+      !["square", "horizontal"].includes(v)
+    )
+      continue;
     if (key === "name" && (!v.trim() || v.length > 80)) continue;
+    const text = loginTexts.find((field) => field.key === key);
+    if (
+      text &&
+      (v.length > text.max ||
+        (["loginTitle", "loginButton"].includes(key) && !v.trim()))
+    )
+      continue;
     (result as Record<string, string>)[key] = v;
   }
   return result;

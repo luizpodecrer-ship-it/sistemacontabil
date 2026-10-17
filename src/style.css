@@ -97,3 +97,9 @@ select.form-control:has(option[value=""]:checked) { color:#737373; }
 .collapsed [data-platform-logo] {display:none}
 .rail:not(.collapsed) .platform-icon.with-logo {display:none}
 .rail.collapsed .platform-icon {display:grid}
+
+/* Asset backgrounds are independent of the mark's transparent pixels. */
+[data-platform-icon].has-custom-icon { padding:4px; border:1px solid #e5e5e5; overflow:hidden; }
+.login-brand { display:grid;place-items:center;width:240px;max-width:100%;height:80px;padding:10px;border-radius:12px;font-size:24px;font-weight:600; }
+.login-brand img {display:block;max-height:100%;max-width:100%;object-fit:contain;}
+[data-login-text]:empty {display:none}

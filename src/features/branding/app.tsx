@@ -1,3 +1,4 @@
+import { LoginSettingsEditor, LoginPreview } from "./login-settings";
 import { createRoot, type Root } from "react-dom/client";
 import { useEffect, useRef, useState } from "react";
 import { Upload, ShieldCheck, Building2, Save } from "lucide-react";
@@ -111,14 +112,21 @@ function Branding({
     setChanged(true);
     setMessage("");
   }
-  async function upload(file: File | undefined, key: "logo" | "icon") {
+  async function upload(
+    file: File | undefined,
+    key: "logo" | "icon" | "loginLogo",
+  ) {
     if (!file) return;
     setBusy(true);
     setMessage("");
     try {
       const data = await readBrandImage(
         file,
-        key === "icon" ? "square" : draft.logoFormat,
+        key === "icon"
+          ? "square"
+          : key === "loginLogo"
+            ? (draft as PlatformBrand).loginLogoFormat
+            : draft.logoFormat,
         key === "icon",
       );
       change(key, data);
@@ -375,6 +383,14 @@ function Branding({
               ))}
             </div>
           </fieldset>
+          {platform && (
+            <LoginSettingsEditor
+              brand={system}
+              onChange={change}
+              busy={busy}
+              onUpload={(file) => void upload(file, "loginLogo")}
+            />
+          )}
           {!platform && (
             <label className="block text-xs font-medium">
               Endereço do escritório
@@ -464,6 +480,7 @@ function Branding({
           <p className="mt-4 text-center text-xs text-neutral-400">
             Prévia em tempo real · imagens sem cortes ou distorção
           </p>
+          {platform && <LoginPreview brand={system} />}
           {platform && (
             <p className="mt-5 text-xs leading-relaxed text-neutral-500">
               O logo será exibido no menu expandido e na tela de entrada. O

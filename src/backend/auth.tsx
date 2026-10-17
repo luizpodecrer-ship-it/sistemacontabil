@@ -110,100 +110,137 @@ function CloudAuth({ done, logout }: { done: () => void; logout: boolean }) {
     }
   };
   return (
-    <main className="min-h-dvh flex items-center justify-center px-5 py-12 bg-white">
-      <div className="max-w-sm w-full">
-        <div
-          data-platform-logo
-          className="h-16 max-w-64 mb-10 text-xl font-semibold"
-        />
-        <h1 className="text-2xl font-semibold mb-3">
-          {mode === "signup"
-            ? "Crie seu escritório"
-            : mode === "reset"
-              ? "Recuperar acesso"
-              : mode === "password"
-                ? "Definir nova senha"
-                : "Acesse seu escritório"}
-        </h1>
-        <p className="text-sm text-neutral-500 mb-7">
-          Conexão autenticada ao banco configurado. Cada conta administra seu
-          próprio escritório.
-        </p>
-        <form
-          className="space-y-5"
-          onSubmit={(e) => {
-            e.preventDefault();
-            void submit();
-          }}
-        >
-          {mode !== "password" && (
-            <FormField
-              spec={{
-                key: "cloudEmail",
-                label: "E-mail",
-                type: "email",
-                placeholder: "voce@escritorio.com.br",
-                autoComplete: "username",
-                required: true,
-              }}
-              value={email}
-              onChange={setEmail}
-            />
-          )}
-          {mode !== "reset" && (
-            <FormField
-              spec={{
-                key: "cloudPassword",
-                label: "Senha",
-                type: "password",
-                placeholder:
-                  mode === "signup" || mode === "password"
-                    ? "Pelo menos 12 caracteres"
-                    : "Sua senha",
-                autoComplete:
-                  mode === "login" ? "current-password" : "new-password",
-                required: true,
-              }}
-              value={password}
-              onChange={setPassword}
-            />
-          )}
-          {message && (
-            <p role="status" className="text-sm text-neutral-600">
-              {message}
-            </p>
-          )}
-          <button disabled={busy} className="btn fx-20 w-full">
-            {busy
-              ? "Aguarde…"
-              : mode === "login"
-                ? "Entrar"
-                : mode === "signup"
-                  ? "Criar conta"
-                  : mode === "password"
-                    ? "Salvar senha"
-                    : "Enviar instruções"}
-          </button>
-        </form>
-        <div className="mt-5 flex flex-wrap gap-4 text-xs text-neutral-500">
-          <button
-            onClick={() => {
-              setMode(mode === "signup" ? "login" : "signup");
-              setMessage("");
+    <main className="min-h-dvh flex bg-white">
+      <section className="w-full lg:w-1/2 flex items-center justify-center px-5 py-12">
+        <div className="max-w-sm w-full">
+          <div data-login-logo className="login-brand mb-8" />
+          <h1
+            data-login-text={mode === "login" ? "loginTitle" : undefined}
+            className="text-2xl font-semibold mb-3"
+          >
+            {mode === "signup"
+              ? "Crie seu escritório"
+              : mode === "reset"
+                ? "Recuperar acesso"
+                : mode === "password"
+                  ? "Definir nova senha"
+                  : "Acesse seu escritório"}
+          </h1>
+          <p
+            data-login-text={mode === "login" ? "loginSubtitle" : undefined}
+            className="text-sm text-neutral-500 mb-7"
+          >
+            Conexão autenticada ao banco configurado. Cada conta administra seu
+            próprio escritório.
+          </p>
+          <form
+            className="space-y-5"
+            onSubmit={(e) => {
+              e.preventDefault();
+              void submit();
             }}
           >
-            {mode === "signup" ? "Já tenho conta" : "Criar conta"}
-          </button>
-          <button
-            onClick={() => {
-              setMode(mode === "reset" ? "login" : "reset");
-              setMessage("");
-            }}
-          >
-            {mode === "reset" ? "Voltar ao login" : "Esqueci minha senha"}
-          </button>
+            {mode !== "password" && (
+              <FormField
+                spec={{
+                  key: "cloudEmail",
+                  label: "E-mail",
+                  type: "email",
+                  placeholder: "voce@escritorio.com.br",
+                  autoComplete: "username",
+                  required: true,
+                }}
+                value={email}
+                onChange={setEmail}
+              />
+            )}
+            {mode !== "reset" && (
+              <FormField
+                spec={{
+                  key: "cloudPassword",
+                  label: "Senha",
+                  type: "password",
+                  placeholder:
+                    mode === "signup" || mode === "password"
+                      ? "Pelo menos 12 caracteres"
+                      : "Sua senha",
+                  autoComplete:
+                    mode === "login" ? "current-password" : "new-password",
+                  required: true,
+                }}
+                value={password}
+                onChange={setPassword}
+              />
+            )}
+            {message && (
+              <p role="status" className="text-sm text-neutral-600">
+                {message}
+              </p>
+            )}
+            <button disabled={busy} className="btn fx-20 w-full">
+              <span
+                data-login-cloud
+                data-login-text={
+                  mode === "login" && !busy ? "loginButton" : undefined
+                }
+              >
+                {busy
+                  ? "Aguarde…"
+                  : mode === "login"
+                    ? "Entrar"
+                    : mode === "signup"
+                      ? "Criar conta"
+                      : mode === "password"
+                        ? "Salvar senha"
+                        : "Enviar instruções"}
+              </span>
+            </button>
+          </form>
+          <div className="mt-5 flex flex-wrap gap-4 text-xs text-neutral-500">
+            <button
+              onClick={() => {
+                setMode(mode === "signup" ? "login" : "signup");
+                setMessage("");
+              }}
+            >
+              {mode === "signup" ? "Já tenho conta" : "Criar conta"}
+            </button>
+            <button
+              onClick={() => {
+                setMode(mode === "reset" ? "login" : "reset");
+                setMessage("");
+              }}
+            >
+              {mode === "reset" ? "Voltar ao login" : "Esqueci minha senha"}
+            </button>
+          </div>
+          <p
+            data-login-text="loginFormFooter"
+            className="mt-6 text-center text-xs text-neutral-500"
+          />
         </div>
-      </div>
+      </section>
+      <aside
+        data-login-panel
+        className="hidden w-1/2 flex-col justify-between bg-neutral-900 p-12 text-white lg:flex"
+      >
+        <div data-login-logo className="login-brand" />
+        <div>
+          <p
+            data-login-text="loginEyebrow"
+            className="mb-5 text-xs uppercase tracking-wider opacity-75"
+          />
+          <h2
+            data-login-text="loginHeadline"
+            className="max-w-lg text-5xl font-medium leading-tight"
+          />
+          <p
+            data-login-text="loginDescription"
+            className="mt-6 max-w-md text-sm opacity-80"
+          />
+        </div>
+        <p data-login-text="loginFooter" className="text-xs opacity-75" />
+      </aside>
     </main>
   );
 }

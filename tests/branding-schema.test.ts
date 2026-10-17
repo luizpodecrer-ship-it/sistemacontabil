@@ -8,7 +8,11 @@ test("Branding: administração global protegida no servidor, escritório isolad
   await db.exec(
     `create role anon;create role authenticated;create schema auth;create table auth.users(id uuid primary key);create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;grant usage on schema auth to authenticated,anon;grant execute on function auth.uid() to authenticated,anon;create schema storage;create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint);create table storage.objects(bucket_id text,name text);create function storage.foldername(text) returns text[] language sql immutable as $$select string_to_array($1,'/')$$;insert into auth.users values('11111111-1111-4111-8111-111111111111'),('22222222-2222-4222-8222-222222222222');`,
   );
-  for (const name of ["001_workspace.sql", "004_branding.sql"])
+  for (const name of [
+    "001_workspace.sql",
+    "004_branding.sql",
+    "005_login_branding.sql",
+  ])
     await db.exec(
       await readFile(
         new URL("../supabase/migrations/" + name, import.meta.url),
@@ -112,6 +116,53 @@ test("Branding: administração global protegida no servidor, escritório isolad
         logo: "data:image/png;base64," + png.toString("base64"),
       }),
     ]),
+  );
+  const loginBrand = {
+    ...branding,
+    loginTitle: "Bem-vindo ao teste",
+    loginButton: "Acessar",
+    loginPanelColor: "#164e63",
+    loginLogoBackground: "#ffffff",
+    iconBackground: "#ffffff",
+    loginLogo: "",
+    loginLogoFormat: "horizontal",
+  };
+  await db.query("select public.save_platform_brand($1::jsonb,1)", [
+    JSON.stringify(loginBrand),
+  ]);
+  assert.equal(
+    (
+      await db.query<{ value: any }>(
+        "select public.get_platform_brand() as value",
+      )
+    ).rows[0].value.branding.loginTitle,
+    "Bem-vindo ao teste",
+  );
+  await assert.rejects(() =>
+    db.query("select public.save_platform_brand($1::jsonb,2)", [
+      JSON.stringify({ ...loginBrand, loginLogo: "data:image/svg+xml,<svg/>" }),
+    ]),
+  );
+  await assert.rejects(() =>
+    db.query("select public.save_platform_brand($1::jsonb,2)", [
+      JSON.stringify({ ...loginBrand, loginTitle: "x".repeat(121) }),
+    ]),
+  );
+  await assert.rejects(() =>
+    db.query("select public.save_platform_brand($1::jsonb,2)", [
+      JSON.stringify({ ...loginBrand, loginPanelColor: "red;display:none" }),
+    ]),
+  );
+  await db.query("select public.save_platform_brand($1::jsonb,2)", [
+    JSON.stringify(branding),
+  ]);
+  assert.equal(
+    (
+      await db.query<{ value: any }>(
+        "select public.get_platform_brand() as value",
+      )
+    ).rows[0].value.branding.loginTitle,
+    "Bem-vindo ao teste",
   );
   await db.exec("set role anon");
   assert.equal(
