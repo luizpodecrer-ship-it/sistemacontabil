@@ -10,7 +10,7 @@ import {
   searchCbo,
 } from "./model";
 const button =
-  "inline-flex items-center justify-center gap-2 rounded-lg border border-neutral-300 px-3 py-2 text-xs hover:bg-neutral-50 disabled:opacity-40";
+  "action-button inline-flex items-center justify-center gap-2 rounded-lg border border-neutral-300 px-3 py-2 text-xs hover:bg-neutral-50 disabled:opacity-40";
 export function CboPicker({
   code,
   onChange,

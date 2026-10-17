@@ -41,7 +41,7 @@ export function mountBranding(
   root.render(<Branding platform={platform} onSaved={onSaved} />);
 }
 const button =
-  "inline-flex items-center justify-center gap-2 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-xs font-medium hover:bg-neutral-50 disabled:opacity-40";
+  "action-button inline-flex items-center justify-center gap-2 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-xs font-medium hover:bg-neutral-50 disabled:opacity-40";
 function Branding({
   platform,
   onSaved,

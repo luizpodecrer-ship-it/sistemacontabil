@@ -26,7 +26,7 @@ import {
 } from "./model";
 import { UnionImport } from "./import";
 const button =
-  "inline-flex items-center justify-center gap-2 rounded-lg border border-neutral-300 bg-white px-4 py-2.5 text-xs font-semibold hover:bg-neutral-50 disabled:opacity-40";
+  "action-button inline-flex items-center justify-center gap-2 rounded-lg border border-neutral-300 bg-white px-4 py-2.5 text-xs font-semibold hover:bg-neutral-50 disabled:opacity-40";
 function template() {
   const blob = new Blob(
     [
@@ -335,7 +335,7 @@ export function Unions({
           </button>
         </div>
       </div>
-      <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-[2fr_1fr_1fr_1fr]">
+      <div className="compact-filter-grid mb-4">
         <input
           aria-label="Buscar sindicatos"
           className="form-control min-w-0"

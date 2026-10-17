@@ -103,7 +103,7 @@ export function LoginSettingsEditor({
                     type="button"
                     aria-label={`Diminuir ${left ? "ícone esquerdo" : "logo direito"}`}
                     disabled={Number(brand[sizeKey]) <= min}
-                    className="rounded-lg border px-3 py-2 disabled:opacity-40"
+                    className="action-button rounded-lg border px-3 py-2 disabled:opacity-40"
                     onClick={() =>
                       onChange(
                         sizeKey,
@@ -131,7 +131,7 @@ export function LoginSettingsEditor({
                     type="button"
                     aria-label={`Aumentar ${left ? "ícone esquerdo" : "logo direito"}`}
                     disabled={Number(brand[sizeKey]) >= max}
-                    className="rounded-lg border px-3 py-2 disabled:opacity-40"
+                    className="action-button rounded-lg border px-3 py-2 disabled:opacity-40"
                     onClick={() =>
                       onChange(
                         sizeKey,

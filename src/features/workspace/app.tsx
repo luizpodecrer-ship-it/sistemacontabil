@@ -62,7 +62,7 @@ export function mountWorkspace(container: HTMLElement, module: string) {
   mounted.render(<Workspace moduleId={module} />);
 }
 const button =
-  "btn fx-20 inline-flex items-center justify-center gap-2 disabled:opacity-40";
+  "action-button btn fx-20 inline-flex items-center justify-center gap-2 disabled:opacity-40";
 const input = "form-control";
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -247,7 +247,7 @@ export function Workspace({ moduleId }: { moduleId: string }) {
       ["debitAccount", "creditAccount"].includes(f.key)
     )
       return (
-        <div key={f.key}>
+        <div key={f.key} data-field-size="long">
           <label
             htmlFor={`op-${f.key}`}
             className="block text-xs font-semibold mb-2"
@@ -1173,13 +1173,11 @@ export function Workspace({ moduleId }: { moduleId: string }) {
       {!["jobs", "unions"].includes(moduleId) && (
         <div
           className={
-            moduleId === "home"
-              ? "mb-5 flex justify-end"
-              : "grid sm:grid-cols-[1fr_180px_auto] gap-4 items-end rounded-xl border border-neutral-200 p-4 bg-white mb-6"
+            moduleId === "home" ? "mb-5 flex justify-end" : "workspace-context"
           }
         >
           {moduleId !== "home" && (
-            <label className="text-xs font-medium">
+            <label className="context-company text-xs font-medium">
               Empresa
               <Select
                 aria-label="Empresa em contexto"
@@ -1220,7 +1218,7 @@ export function Workspace({ moduleId }: { moduleId: string }) {
           />
           {moduleId !== "home" && (
             <span
-              className={`text-xs rounded-lg px-3 py-3 mb-1 ${closing?.state === "Fechado" ? "bg-emerald-50 text-emerald-800" : "bg-neutral-50 text-neutral-500"}`}
+              className={`context-state text-xs rounded-lg ${closing?.state === "Fechado" ? "bg-emerald-50 text-emerald-800" : "bg-neutral-50 text-neutral-500"}`}
             >
               {closing?.state || "Aberto"}
             </span>
@@ -1244,7 +1242,7 @@ export function Workspace({ moduleId }: { moduleId: string }) {
   );
   if (editor && def)
     return (
-      <div>
+      <div className="record-editor">
         {header}
         <button
           className="text-xs flex items-center gap-2 mb-5"
@@ -1277,7 +1275,7 @@ export function Workspace({ moduleId }: { moduleId: string }) {
               void save();
             }}
           >
-            <div className="grid md:grid-cols-2 gap-5">
+            <div className="record-field-grid">
               {fields(def).map((f) =>
                 labeledField(
                   f,
@@ -1453,9 +1451,9 @@ export function Workspace({ moduleId }: { moduleId: string }) {
             </div>
           </Section>
         )}
-        <div className="flex flex-wrap justify-between gap-3 mb-5">
-          <div className="relative w-full sm:max-w-xs">
-            <Search className="absolute left-3 top-3.5 w-4 h-4 text-neutral-400" />
+        <div className="record-toolbar">
+          <div className="record-search">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
             <input
               className={`${input} !pl-10`}
               aria-label="Buscar registros"
@@ -1466,7 +1464,7 @@ export function Workspace({ moduleId }: { moduleId: string }) {
           </div>
           {def.status && (
             <Select
-              className={`${input} !w-auto`}
+              className={`${input} record-status`}
               aria-label="Filtrar situação"
               value={status}
               onChange={(e) => setStatus(e.target.value)}

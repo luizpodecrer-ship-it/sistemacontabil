@@ -32,6 +32,24 @@ export function FormField({
   onBlur,
   layoutClassName,
 }: Props) {
+  const size =
+    spec.wide || spec.type === "textarea"
+      ? "wide"
+      : (spec.type &&
+            ["date", "month", "time", "number"].includes(spec.type)) ||
+          spec.mask ||
+          /(^|_)(code|uf|cep|rate|days|hours|percent)$|Date$|At$/.test(spec.key)
+        ? "short"
+        : [
+              "title",
+              "name",
+              "legalName",
+              "description",
+              "address",
+              "street",
+            ].includes(spec.key)
+          ? "long"
+          : "regular";
   const id = `field-${spec.key}`;
   const ref = useRef<HTMLInputElement>(null);
   const common = {
@@ -49,7 +67,10 @@ export function FormField({
     onBlur,
   };
   return (
-    <div className={layoutClassName ?? (spec.wide ? "md:col-span-2" : "")}>
+    <div
+      data-field-size={size}
+      className={`form-field ${layoutClassName ?? (spec.wide ? "md:col-span-2" : "")}`}
+    >
       <label
         htmlFor={id}
         className="mb-1.5 block text-xs font-semibold text-neutral-700"

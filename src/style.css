@@ -41,11 +41,11 @@ button, [role="button"], input[type="button"], input[type="submit"], input[type=
   position: relative;
   isolation: isolate;
   font-family: var(--body-font);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
-  letter-spacing: .08em;
+  letter-spacing: .025em;
   text-transform: uppercase;
-  padding: 13px 24px;
+  padding: 8px 14px;
   border: 1px solid var(--bink);
   border-radius: 8px;
   background: transparent;
@@ -62,7 +62,7 @@ button, [role="button"], input[type="button"], input[type="submit"], input[type=
   background: var(--bink) !important;
   color: var(--bsurf) !important;
 }
-@media (max-width: 400px) { .btn { padding-inline: 16px; font-size: 11px; } }
+
 
 @source "../components";
 @theme inline {
@@ -76,8 +76,8 @@ button, [role="button"], input[type="button"], input[type="submit"], input[type=
 
 /* Shared form standard: labels, gray examples, focus and validation. */
 .form-control {
-  width:100%; min-height:44px; border:1px solid #d4d4d4; border-radius:12px;
-  padding:11px 14px; background:#fff; color:#171717; font-family:var(--body-font); font-size:14px;
+  width:100%; min-height:38px; border:1px solid #d4d4d4; border-radius:10px;
+  padding:8px 12px; background:#fff; color:#171717; font-family:var(--body-font); font-size:14px;
   transition:border-color .15s,box-shadow .15s;
 }
 .form-control::placeholder { color:#a3a3a3; opacity:1; }
@@ -175,3 +175,50 @@ select.form-control:has(option[value=""]:checked) { color:#737373; }
 .nav-group-trigger.current-group { color:#171717; font-weight:600; }
 .rail #collapse svg { rotate:0deg; transition:rotate .2s; }
 .rail.collapsed #collapse svg { rotate:180deg; }
+
+/* Compact, shared sizing for actions and data-entry layouts. */
+.btn, .action-button { align-self:center; flex-shrink:0; box-sizing:border-box; display:inline-flex; align-items:center; justify-content:center; gap:7px; min-height:36px; padding:8px 14px; border-radius:8px; font-family:var(--body-font); font-size:12px; font-weight:600; line-height:18px; }
+.btn svg, .action-button svg { width:15px; height:15px; flex-shrink:0; }
+.form-control { line-height:20px; }
+.form-field { min-width:0; }
+.form-field[data-field-size="short"] .form-control { max-width:14rem; }
+.form-field[data-field-size="regular"] .form-control { max-width:28rem; }
+.form-field[data-field-size="long"] .form-control { max-width:38rem; }
+textarea.form-control { min-height:96px; }
+.workspace-context { display:flex; flex-wrap:wrap; align-items:flex-end; gap:12px; width:fit-content; max-width:100%; padding:14px; margin-bottom:22px; border:1px solid #e5e5e5; border-radius:12px; background:#fff; }
+.workspace-context .context-company { width:clamp(260px,34vw,440px); max-width:100%; min-width:0; }
+.workspace-context .context-company .system-select { min-height:38px; }
+.workspace-context .form-field { width:168px; max-width:100%; }
+.workspace-context .context-state { display:inline-flex; align-items:center; min-height:38px; margin:0; padding:8px 12px; }
+.record-toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-bottom:18px; }
+.record-toolbar .record-search { position:relative; width:320px; max-width:100%; }
+.record-toolbar .record-status { width:176px; max-width:100%; }
+.record-toolbar > .btn { margin-left:auto; }
+.record-editor { width:100%; max-width:1040px; }
+.record-field-grid { display:grid; grid-template-columns:minmax(0,1fr); gap:18px 16px; }
+.compact-filter-grid { display:flex; flex-wrap:wrap; gap:10px; }
+.compact-filter-grid > input { width:360px; max-width:100%; }
+.compact-filter-grid > .system-select { width:220px; max-width:100%; }
+.compact-filter-grid > .system-select:first-of-type { width:140px; }
+@media(min-width:768px) {
+ .record-field-grid { grid-template-columns:repeat(12,minmax(0,1fr)); }
+ .record-field-grid > * { grid-column:span 6; }
+ .record-field-grid > [data-field-size="long"], .record-field-grid > [data-field-size="wide"] { grid-column:span 12; }
+}
+@media(min-width:1200px) {
+ .record-field-grid > * { grid-column:span 4; }
+ .record-field-grid > [data-field-size="short"] { grid-column:span 3; }
+ .record-field-grid > [data-field-size="long"] { grid-column:span 6; }
+ .record-field-grid > [data-field-size="wide"] { grid-column:span 12; }
+}
+@media(max-width:767px) {
+ .btn, .action-button { min-height:44px; padding:10px 12px; }
+ .form-control { min-height:44px; padding:11px 12px; }
+ .workspace-context { width:100%; gap:12px; }
+ .workspace-context .context-company { width:100%; }
+ .workspace-context .form-field { flex:0 1 168px; }
+ .workspace-context .context-company .system-select, .workspace-context .context-state { min-height:44px; }
+ .record-toolbar .record-search { width:100%; }
+ .record-toolbar > .btn { margin-left:0; }
+ .compact-filter-grid > input, .compact-filter-grid > .system-select, .compact-filter-grid > .system-select:first-of-type { width:100%; }
+}

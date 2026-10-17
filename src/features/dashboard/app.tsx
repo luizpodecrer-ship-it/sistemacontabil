@@ -120,7 +120,7 @@ export function Dashboard({
           </div>
           <button
             onClick={exportData}
-            className="inline-flex items-center gap-2 rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-xs"
+            className="action-button inline-flex items-center gap-2 rounded-xl border border-neutral-300 bg-white px-4 py-2.5 text-xs"
           >
             <Download size={15} />
             Exportar
