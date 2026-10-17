@@ -72,7 +72,10 @@ test("CNPJ automático preenche campos vazios, preserva digitação e permite su
   await page.reload();
   await page.getByRole("button", { name: "Explorar a prévia" }).click();
   await page.getByRole("button", { name: "Empresas", exact: true }).click();
-  await page.getByRole("button", { name: "Abrir cadastro" }).click();
+  await page.getByRole("button", { name: /^Ações da empresa/ }).click();
+  await page
+    .getByRole("button", { name: "Abrir cadastro", exact: true })
+    .click();
   await expect(page.locator("button[role=tab] svg")).toHaveCount(10);
 });
 test("Resposta antiga e indisponibilidade não substituem o novo CNPJ nem impedem preenchimento manual", async ({
@@ -150,7 +153,10 @@ test("CPF, telefones e configurações de pessoal persistem sem exigir parâmetr
   await page.reload();
   await page.getByRole("button", { name: "Explorar a prévia" }).click();
   await page.getByRole("button", { name: "Empresas", exact: true }).click();
-  await page.getByRole("button", { name: "Abrir cadastro" }).click();
+  await page.getByRole("button", { name: /^Ações da empresa/ }).click();
+  await page
+    .getByRole("button", { name: "Abrir cadastro", exact: true })
+    .click();
   await expect(page.getByLabel("CPF", { exact: true })).toHaveValue(
     "529.982.247-25",
   );
@@ -196,7 +202,10 @@ test("Cadastro antigo mantém os telefones e campos de endereço/cartório ao ed
   });
   await page.getByRole("button", { name: "Explorar a prévia" }).click();
   await page.getByRole("button", { name: "Empresas", exact: true }).click();
-  await page.getByRole("button", { name: "Abrir cadastro" }).click();
+  await page.getByRole("button", { name: /^Ações da empresa/ }).click();
+  await page
+    .getByRole("button", { name: "Abrir cadastro", exact: true })
+    .click();
   await tab(page, "Endereço e contatos");
   await expect(page.getByLabel("Número com DDD", { exact: true })).toHaveValue(
     "(65) 3322-1234",

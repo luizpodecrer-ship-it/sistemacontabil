@@ -31,13 +31,11 @@ test("Importa XLS com revisão de duplicados, persiste e não repete cadastros",
   await page
     .getByRole("button", { name: "Importar empresas", exact: true })
     .click();
-  await page
-    .getByLabel("Arquivo de empresas")
-    .setInputFiles({
-      name: "teste.xls",
-      mimeType: "application/vnd.ms-excel",
-      buffer: Buffer.from("synthetic test fixture"),
-    });
+  await page.getByLabel("Arquivo de empresas").setInputFiles({
+    name: "teste.xls",
+    mimeType: "application/vnd.ms-excel",
+    buffer: Buffer.from("synthetic test fixture"),
+  });
   await expect(page.getByText(/Código 639/)).toBeVisible();
   await expect(page.getByText(/Código 1095/)).toBeVisible();
   await page
@@ -45,7 +43,7 @@ test("Importa XLS com revisão de duplicados, persiste e não repete cadastros",
     .click();
   await expect(page.getByText(/Importação concluída: 1 novos/)).toBeVisible();
   await expect(
-    page.getByRole("heading", {
+    page.getByRole("button", {
       name: "Empresa Importada Fictícia",
       exact: true,
     }),
@@ -56,19 +54,20 @@ test("Importa XLS com revisão de duplicados, persiste e não repete cadastros",
   await page
     .getByRole("button", { name: "Importar empresas", exact: true })
     .click();
-  await page
-    .getByLabel("Arquivo de empresas")
-    .setInputFiles({
-      name: "teste.json",
-      mimeType: "application/json",
-      buffer: Buffer.from(JSON.stringify(payload)),
-    });
+  await page.getByLabel("Arquivo de empresas").setInputFiles({
+    name: "teste.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(payload)),
+  });
   await expect(page.getByText(/1 já importados/)).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Importar 0 cadastros" }),
   ).toBeDisabled();
   await page.getByRole("button", { name: "Fechar importação" }).click();
-  await page.getByRole("button", { name: /Abrir cadastro/ }).click();
+  await page.getByRole("button", { name: /^Ações da empresa/ }).click();
+  await page
+    .getByRole("button", { name: "Abrir cadastro", exact: true })
+    .click();
   await expect(
     page.getByLabel("Data de inativação", { exact: true }),
   ).toHaveValue("2025-01-15");

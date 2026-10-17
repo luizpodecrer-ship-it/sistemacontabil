@@ -67,9 +67,12 @@ test("Máscaras, rascunho persistido, edição e CNPJ duplicado", async ({
   await page.getByRole("button", { name: "Explorar a prévia" }).click();
   await page.getByRole("button", { name: "Empresas", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "Empresa de Teste Ltda." }),
+    page.getByRole("button", { name: "Empresa de Teste Ltda.", exact: true }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Abrir cadastro" }).click();
+  await page.getByRole("button", { name: /^Ações da empresa/ }).click();
+  await page
+    .getByRole("button", { name: "Abrir cadastro", exact: true })
+    .click();
   await page
     .getByLabel("Nome fantasia", { exact: true })
     .fill("Empresa Atualizada");
@@ -77,7 +80,7 @@ test("Máscaras, rascunho persistido, edição e CNPJ duplicado", async ({
   await expect(page.getByText("Rascunho salvo neste navegador.")).toBeVisible();
   await page.getByRole("button", { name: "Voltar para empresas" }).click();
   await expect(
-    page.getByRole("heading", { name: "Empresa Atualizada" }),
+    page.getByText("Empresa Atualizada", { exact: true }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Nova empresa" }).click();
   await identity(page);
@@ -184,7 +187,10 @@ test("Conclusão exige as abas essenciais, guarda histórico e anexos após reca
   await page.reload();
   await page.getByRole("button", { name: "Explorar a prévia" }).click();
   await page.getByRole("button", { name: "Empresas", exact: true }).click();
-  await page.getByRole("button", { name: "Abrir cadastro" }).click();
+  await page.getByRole("button", { name: /^Ações da empresa/ }).click();
+  await page
+    .getByRole("button", { name: "Abrir cadastro", exact: true })
+    .click();
   await tab(page, "Documentos");
   await expect(
     page.getByText("contrato-teste.pdf", { exact: true }),

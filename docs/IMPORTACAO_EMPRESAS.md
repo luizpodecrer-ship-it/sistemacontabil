@@ -22,3 +22,9 @@ Instalações que já configuraram Supabase precisam aplicar também `supabase/m
 ## Verificação
 
 `npm run typecheck`, `npm test`, `npm run build` e `npm run test:e2e` validam tipos, regras de importação, rollback no banco e navegação com persistência local. O teste do navegador intercepta a conversão XLS com dados sintéticos, e também verifica a leitura de JSON. O leitor Python tem testes separados: `python -m pip install -r requirements.txt` e `python -m unittest discover -s tests -p 'test_*.py'`. O XLS de teste contém somente dados sintéticos.
+
+## Exibição dos cadastros
+
+A página Empresas exibe uma tabela com Código, Razão Social, Tipo de Inscrição, Inscrição, Status, Data de Inativação e CNAE Preponderante. Status representa a situação no escritório (por exemplo, Ativa/Inativa), independentemente da conclusão do cadastro. O CNAE preponderante é exibido somente quando informado, sem inferir o CNAE principal.
+
+Clique na razão social ou no menu de três pontos para abrir ou editar o cadastro. A busca e o filtro limitam as linhas exibidas; a seleção geral alcança somente essas linhas. A barra de seleção permite exportar as empresas escolhidas em CSV ou limpar a seleção. No celular, a tabela tem rolagem horizontal para preservar todas as colunas.

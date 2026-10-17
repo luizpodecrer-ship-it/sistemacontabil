@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { FormField, type FieldSpec } from "@/components/ui/form-field";
 import { digits, cnpjKey, formatCnae, validPhone } from "@/lib/formats";
+import { CompanyTable } from "./company-table";
 import { CompanyImport } from "./company-import";
 import { CnpjLookup } from "./cnpj-lookup";
 import type { CnpjResult } from "./cnpj";
@@ -783,7 +784,9 @@ function CompanyApp() {
       .toLowerCase();
     const rows = records.filter(
       (c) =>
-        (filter === "Todos" || c.status === filter) &&
+        (filter === "Todos" ||
+          c.status === filter ||
+          c.values.officeStatus === filter) &&
         [c.values.legalName, c.values.tradeName, c.values.cnpj, c.values.code]
           .filter(Boolean)
           .join(" ")
@@ -841,11 +844,20 @@ function CompanyApp() {
           </div>
           <select
             className="form-control !w-auto"
-            aria-label="Filtrar por situação do cadastro"
+            aria-label="Filtrar empresas por status"
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
           >
-            {["Todos", "Rascunho", "Concluído"].map((s) => (
+            {[
+              "Todos",
+              "Ativa",
+              "Inativa",
+              "Em implantação",
+              "Suspensa",
+              "Encerrada",
+              "Rascunho",
+              "Concluído",
+            ].map((s) => (
               <option key={s}>{s}</option>
             ))}
           </select>
@@ -868,47 +880,16 @@ function CompanyApp() {
             </p>
           </div>
         ) : (
-          <div id="companies" className="grid lg:grid-cols-2 gap-4">
-            {rows
-              .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
-              .map((c) => (
-                <article
-                  key={c.id}
-                  className="rounded-2xl border border-neutral-200 bg-white p-6"
-                >
-                  <div className="flex justify-between gap-3">
-                    <span className="h-11 w-11 grid place-items-center rounded-xl bg-neutral-100">
-                      <Building2 className="w-5 h-5 text-neutral-500" />
-                    </span>
-                    <span
-                      className={`rounded-md px-2 py-1 text-[11px] self-start ${c.status === "Concluído" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}
-                    >
-                      {c.status}
-                    </span>
-                  </div>
-                  <h2 className="font-semibold mt-5">
-                    {c.values.tradeName || c.values.legalName}
-                  </h2>
-                  <p className="text-xs text-neutral-500 mt-2">
-                    {c.values.cnpj} · {c.values.code}
-                  </p>
-                  <p className="text-xs text-neutral-400 mt-1">
-                    {c.values.legalName}
-                  </p>
-                  <div className="mt-5 pt-4 border-t border-neutral-100 flex justify-between gap-2 items-center">
-                    <span className="text-[11px] text-neutral-400">
-                      {c.values.officeStatus} · {c.branches.length} filial(is)
-                    </span>
-                    <button
-                      className="text-xs font-semibold underline underline-offset-4"
-                      onClick={() => open(c)}
-                    >
-                      Abrir cadastro ↗
-                    </button>
-                  </div>
-                </article>
-              ))}
-          </div>
+          <CompanyTable
+            rows={[...rows].sort((a, b) =>
+              (a.values.code || "").localeCompare(
+                b.values.code || "",
+                "pt-BR",
+                { numeric: true },
+              ),
+            )}
+            onOpen={open}
+          />
         )}
       </div>
     );
