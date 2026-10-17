@@ -4,7 +4,7 @@ Esta entrega amplia a aplicação em desenvolvimento. Ter uma página navegável
 
 | Capacidade da documentação | Implementado e exercitável | Pendente para cobertura integral |
 |---|---|---|
-| Empresas e estabelecimentos | Cadastro em cinco abas agrupadas, CPF/CNPJ, máscaras, consulta pública CNPJ, CEP, telefones, histórico, anexos e parâmetros de pessoal por vigência | Catálogos oficiais e validação da disponibilidade/atualização das fontes externas |
+| Empresas e estabelecimentos | Cadastro em seis abas agrupadas, incluindo colaboradores por empresa, CPF/CNPJ, máscaras, consulta pública CNPJ, CEP, telefones, histórico, anexos e parâmetros de pessoal por vigência | Catálogos oficiais e validação da disponibilidade/atualização das fontes externas |
 | Contabilidade | Plano de contas, partidas balanceadas, diário, saldo anterior, balancete, estorno, resultado preliminar e bloqueio por competência | Centros de custo, conciliação abrangente, encerramento de resultado, demonstrações oficiais, consolidação e validação CFC |
 | Escrita Fiscal | Cadastro e importação XML NF-e, preservação de original, duplicidade, conferência e integração contábil | Motor de apuração por regime/UF/município; obrigações oficiais e guias |
 | Folha de Pagamento | Empregados, vínculos, eventos manuais, soma de proventos/descontos por competência | INSS, IRRF, FGTS, férias, afastamentos, rescisão, convenções aplicadas, eSocial |
@@ -38,3 +38,5 @@ O adaptador opcional Supabase foi preparado para autenticação por e-mail/senha
 O primeiro modo de nuvem é exclusivo da conta proprietária. Cadastro de equipe não cria permissões ou usuários. Convites, múltiplos perfis, MFA e portais externos permanecem pendentes. O plano de contas é compartilhado entre empresas do mesmo escritório nesta entrega. O estado operacional é um agregado por escritório, com revisão otimista: exige decomposição e processamento assíncrono para volumes maiores.
 
 Para ativar o adaptador, siga CONFIGURAR_NUVEM.md. Variáveis ausentes não ativam nuvem, nem convertem o login de demonstração em autenticação real. Não há migração automática de dados locais para Supabase. Antes de usar dados reais, é necessário homologar o ambiente configurado, as permissões, recuperação, proteção e as rotinas aplicáveis com profissionais responsáveis.
+
+Colaboradores: cadastro detalhado compartilhado com Pessoal e vínculos, CPF/CTPS Digital, dependentes, benefícios, jornada e histórico. Consulte [COLABORADORES.md](COLABORADORES.md) para validações implementadas e limites trabalhistas.

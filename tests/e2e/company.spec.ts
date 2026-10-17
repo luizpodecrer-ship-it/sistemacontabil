@@ -34,7 +34,7 @@ test("Máscaras, rascunho persistido, edição e CNPJ duplicado", async ({
 }) => {
   await enter(page);
   await identity(page);
-  await expect(page.getByRole("tab")).toHaveCount(5);
+  await expect(page.getByRole("tab")).toHaveCount(6);
   await expect(page.getByLabel("CEP", { exact: true })).toBeVisible();
   await expect(
     page.getByLabel("E-mail principal", { exact: true }),

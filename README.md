@@ -42,7 +42,7 @@ Importe este repositório, selecione a branch `main` e mantenha a pasta raiz `./
 
 ## Cadastro de empresas
 
-Acesse **Empresas → Nova empresa**. O módulo agora usa React/TypeScript, com cinco abas: Dados gerais; Fiscal e atividades; Pessoas e estabelecimentos; Atendimento e pessoal; Documentos e histórico. Os campos têm larguras proporcionais ao conteúdo, com até quatro por linha no computador e uma coluna no celular. A lista de Empresas exibe apenas os cadastros locais; os exemplos dos demais módulos continuam demonstrativos.
+Acesse **Empresas → Nova empresa**. O módulo agora usa React/TypeScript, com seis abas: Dados gerais; Fiscal e atividades; Pessoas e estabelecimentos; Atendimento e pessoal; Colaboradores; Documentos e histórico. Os campos têm larguras proporcionais ao conteúdo, com até quatro por linha no computador e uma coluna no celular. A lista de Empresas exibe apenas os cadastros locais; os exemplos dos demais módulos continuam demonstrativos.
 
 - `components/ui/form-field.tsx`: campo reutilizável com label, exemplo cinza, mensagem de ajuda, estado inválido e erro associado para tecnologia assistiva.
 - `lib/formats.ts`: máscaras e verificações compartilhadas (CNPJ numérico/alfanumérico, CPF, telefone com DDD, CEP, CNAE e moeda).
@@ -74,3 +74,7 @@ A evolução do cadastro inclui CPF/CNPJ, telefones em lista, dados complementar
 ## Importação de empresas
 
 Na página Empresas, o botão **Importar empresas** lê o relatório XLS com as sete colunas do cadastro ou o JSON preparado. Cadastros novos são rascunhos e inscrições repetidas no arquivo ficam separadas para revisão. No modo local os registros ficam no IndexedDB desse navegador. Veja [o guia de importação](docs/IMPORTACAO_EMPRESAS.md) para formato, limites, conversão Python na Vercel e migração opcional do Supabase.
+
+## Colaboradores
+
+A aba **Colaboradores**, ao lado de Atendimento e pessoal, compartilha o cadastro com Pessoal e vínculos. Possui blocos para documentos, contrato, jornada, dependentes e informações do eSocial. A Carteira Digital usa o CPF validado como identificação, sem consulta a dados oficiais. Veja [o guia e os limites da implementação](docs/COLABORADORES.md).

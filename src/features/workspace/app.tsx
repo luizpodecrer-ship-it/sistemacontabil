@@ -1,3 +1,4 @@
+import { CompanyEmployees } from "../employees/company-employees";
 import { cloudConfigured } from "../../backend/client";
 import { createRoot, type Root } from "react-dom/client";
 import { useEffect, useRef, useState, type ReactNode } from "react";
@@ -38,6 +39,7 @@ import {
   type Line,
   type Values,
 } from "./model";
+const ignoreEmployeeEditing = (_value: boolean) => {};
 let mounted: Root | undefined;
 let dirty = false;
 export const canLeaveWorkspace = () =>
@@ -2033,7 +2035,20 @@ export function Workspace({ moduleId }: { moduleId: string }) {
     <div>
       {header}
       {entryForm()}
-      {def && renderGeneric()}
+      {def && moduleId !== "employees" && renderGeneric()}
+      {moduleId === "employees" &&
+        (companies.find((c) => c.id === companyId) ? (
+          <CompanyEmployees
+            key={companyId}
+            company={companies.find((c) => c.id === companyId)!}
+            onDirtyChange={setChanged}
+            onEditingChange={ignoreEmployeeEditing}
+          />
+        ) : (
+          <p className="text-sm text-neutral-500">
+            Selecione uma empresa para consultar seus colaboradores.
+          </p>
+        ))}
       {moduleId === "searchAll" && (
         <Section title="Encontre empresas, documentos e tarefas">
           <label className="text-xs font-semibold">

@@ -26,6 +26,7 @@ import {
 import { FormField, type FieldSpec } from "@/components/ui/form-field";
 import { digits, cnpjKey, formatCnae, validPhone } from "@/lib/formats";
 import { CompanyTable } from "./company-table";
+import { CompanyEmployees } from "../employees/company-employees";
 import { CompanyImport } from "./company-import";
 import { CnpjLookup } from "./cnpj-lookup";
 import type { CnpjResult } from "./cnpj";
@@ -84,7 +85,14 @@ export function mountCompanies(container: HTMLElement) {
   root = createRoot(container);
   root.render(<CompanyApp />);
 }
-const tabIcons = [Building2, Landmark, Users, BriefcaseBusiness, FileText];
+const tabIcons = [
+  Building2,
+  Landmark,
+  Users,
+  BriefcaseBusiness,
+  Users,
+  FileText,
+];
 const action =
   "btn fx-20 inline-flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-wait";
 function Grid({
@@ -307,6 +315,18 @@ function CompanyApp() {
   const [notice, setNotice] = useState("");
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
+  const [employeeDirty, setEmployeeDirty] = useState(false);
+  const [employeeEditing, setEmployeeEditing] = useState(false);
+  const switchTab = (next: number) => {
+    if (
+      next !== tab &&
+      employeeDirty &&
+      !window.confirm("Descartar alterações não salvas do colaborador?")
+    )
+      return false;
+    setTab(next);
+    return true;
+  };
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [documentType, setDocumentType] = useState("Contrato social");
   const [documentExpiry, setDocumentExpiry] = useState("");
@@ -343,9 +363,9 @@ function CompanyApp() {
     };
   }, []);
   useEffect(() => {
-    unsaved = dirty;
+    unsaved = dirty || employeeDirty;
     const handler = (e: BeforeUnloadEvent) => {
-      if (dirty) {
+      if (dirty || employeeDirty) {
         e.preventDefault();
         e.returnValue = "";
       }
@@ -355,7 +375,7 @@ function CompanyApp() {
       window.removeEventListener("beforeunload", handler);
       unsaved = false;
     };
-  }, [dirty]);
+  }, [dirty, employeeDirty]);
   const clearError = (key: string) =>
     setErrors((previous) => {
       const next = { ...previous };
@@ -434,6 +454,8 @@ function CompanyApp() {
     setErrors((old) => ({ ...old, [key]: error }));
   };
   const open = (company: Company) => {
+    setEmployeeDirty(false);
+    setEmployeeEditing(false);
     setEditing(structuredClone(normalizeCompany(company)));
     setLookupResult(null);
     setLookupSelection([]);
@@ -445,6 +467,8 @@ function CompanyApp() {
   const back = () => {
     if (!canLeaveCompanies()) return;
     setEditing(null);
+    setEmployeeDirty(false);
+    setEmployeeEditing(false);
     setDirty(false);
     setErrors({});
     setRemoveRow(null);
@@ -952,7 +976,7 @@ function CompanyApp() {
                   type="button"
                   className="text-xs text-red-700 underline text-left"
                   onClick={() => {
-                    setTab(errorTab(key));
+                    if (!switchTab(errorTab(key))) return;
                     setTimeout(
                       () => document.getElementById("field-" + key)?.focus(),
                       0,
@@ -993,11 +1017,11 @@ function CompanyApp() {
                           (e.key === "ArrowRight" ? 1 : -1) +
                           tabs.length) %
                         tabs.length;
-                setTab(next);
-                document.getElementById(`company-tab-${next}`)?.focus();
+                if (switchTab(next))
+                  document.getElementById(`company-tab-${next}`)?.focus();
               }
             }}
-            onClick={() => setTab(i)}
+            onClick={() => switchTab(i)}
             className={`shrink-0 inline-flex items-center gap-2 px-3 py-3 text-xs rounded-t-lg border-b-2 ${tab === i ? "text-neutral-900 border-neutral-900 bg-white font-semibold" : "border-transparent text-neutral-400 hover:text-neutral-700"}`}
           >
             {(() => {
@@ -1021,7 +1045,7 @@ function CompanyApp() {
         noValidate
         onSubmit={(e) => {
           e.preventDefault();
-          void save(true);
+          if (tab !== 4) void save(true);
         }}
       >
         <div
@@ -1325,6 +1349,14 @@ function CompanyApp() {
             </>
           )}
           {tab === 4 && (
+            <CompanyEmployees
+              key={editing.id}
+              company={editing}
+              onDirtyChange={setEmployeeDirty}
+              onEditingChange={setEmployeeEditing}
+            />
+          )}
+          {tab === 5 && (
             <Section
               title="Documentos cadastrais"
               description="PDF, PNG ou JPG, até 10 MB por arquivo e 30 MB por cadastro. Anexos ficam neste navegador. Não envie certificados digitais ou senhas."
@@ -1466,7 +1498,7 @@ function CompanyApp() {
               </div>
             </Section>
           )}
-          {tab === 4 && (
+          {tab === 5 && (
             <Section
               title="Histórico do cadastro"
               description="Registro local de salvamentos; não substitui auditoria de um sistema com usuários autenticados."
@@ -1494,13 +1526,19 @@ function CompanyApp() {
             </Section>
           )}
         </div>
-        <div className="sticky bottom-0 z-10 rounded-xl border border-neutral-200 bg-white/95 backdrop-blur p-4 flex flex-wrap justify-between gap-3">
+        <div
+          className={
+            employeeEditing
+              ? "hidden"
+              : "sticky bottom-0 z-10 rounded-xl border border-neutral-200 bg-white/95 backdrop-blur p-4 flex flex-wrap justify-between gap-3"
+          }
+        >
           <div className="flex gap-2 items-center">
             <button
               type="button"
               disabled={tab === 0}
               className="p-2 text-xs text-neutral-500 disabled:opacity-30"
-              onClick={() => setTab((n) => n - 1)}
+              onClick={() => switchTab(tab - 1)}
             >
               Anterior
             </button>
@@ -1511,12 +1549,12 @@ function CompanyApp() {
               type="button"
               disabled={tab === tabs.length - 1}
               className="p-2 text-xs text-neutral-500 disabled:opacity-30"
-              onClick={() => setTab((n) => n + 1)}
+              onClick={() => switchTab(tab + 1)}
             >
               Próxima
             </button>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className={employeeEditing ? "hidden" : "flex flex-wrap gap-2"}>
             <button
               type="button"
               disabled={saving}

@@ -76,7 +76,7 @@ test("CNPJ automático preenche campos vazios, preserva digitação e permite su
   await page
     .getByRole("button", { name: "Abrir cadastro", exact: true })
     .click();
-  await expect(page.locator("button[role=tab] svg")).toHaveCount(5);
+  await expect(page.locator("button[role=tab] svg")).toHaveCount(6);
 });
 test("Resposta antiga e indisponibilidade não substituem o novo CNPJ nem impedem preenchimento manual", async ({
   page,

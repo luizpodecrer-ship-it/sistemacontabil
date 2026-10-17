@@ -49,6 +49,7 @@ export const tabs = [
   "Fiscal e atividades",
   "Pessoas e estabelecimentos",
   "Atendimento e pessoal",
+  "Colaboradores",
   "Documentos e histórico",
 ];
 const opts = (
