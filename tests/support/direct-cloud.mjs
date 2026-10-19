@@ -53,6 +53,7 @@ export function fixture() {
     const headers = new Headers(init.headers);
     state.requests.push({
       path: url.pathname,
+      query: url.search,
       auth: headers.get("Authorization"),
       apikey: headers.get("apikey"),
     });

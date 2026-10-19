@@ -59,9 +59,14 @@ export function createCloudHandler(env = process.env, dependencies = {}) {
         req.url,
         `https://${req.headers.host || "localhost"}`,
       );
+      // Vite deployments need an explicit rewrite to the single Node function.
+      // Vercel can supply the rewritten URL; retain normal URLs for local tests.
       const route = incoming.pathname.startsWith("/api/cloud/")
         ? incoming.pathname.slice("/api/cloud/".length)
-        : "";
+        : incoming.pathname === "/api/cloud"
+          ? incoming.searchParams.get("__nexopen_path") || ""
+          : "";
+      incoming.searchParams.delete("__nexopen_path");
       if (route === "status" && req.method === "GET")
         return sendJson(res, 200, {
           mode: config.mode,

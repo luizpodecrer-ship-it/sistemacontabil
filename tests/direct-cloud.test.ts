@@ -87,6 +87,20 @@ test("Servidor de testes: sessão privada, CSRF, escopo, anexos grandes e falhas
     403,
   );
   assert.equal((await call("rest/v1/companies", { headers })).status, 200);
+  const rewritten = await fetch(
+    base + "/api/cloud?__nexopen_path=rest%2Fv1%2Fcompanies&select=payload",
+    { headers },
+  );
+  assert.equal(
+    rewritten.status,
+    200,
+    "Vercel rewrite must reach nested REST routes",
+  );
+  assert.equal(
+    mock.state.requests.at(-1)!.query,
+    "?select=payload",
+    "internal routing parameter must not reach PostgREST",
+  );
   const forwarded = mock.state.requests.at(-1)!;
   assert.equal(forwarded.auth, `Bearer ${mock.context.token}`);
   assert.equal(forwarded.apikey, testSecret);
