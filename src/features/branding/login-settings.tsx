@@ -242,7 +242,7 @@ export function LoginPreview({ brand }: { brand: PlatformBrand }) {
           </p>
           <div className="mt-5 space-y-3">
             <div className="rounded-lg border border-neutral-200 p-3 text-[10px] text-neutral-400">
-              E-mail
+              Nome de usuário
             </div>
             <div className="rounded-lg border border-neutral-200 p-3 text-[10px] text-neutral-400">
               Senha
