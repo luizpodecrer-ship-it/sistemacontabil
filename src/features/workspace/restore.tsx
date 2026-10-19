@@ -5,6 +5,8 @@ import { validCnpj, validCpf } from "@/lib/formats";
 import { loadData, mutateData } from "./storage";
 import { checkEntry, initialData, type Data } from "./model";
 import { normalizeCompany, type Company } from "../companies/model";
+import { cloudRestoreSnapshot } from "../../backend/repository";
+import { importIdentity } from "../branding/transfer";
 type FileRecord = { name: string; type: string; base64: string };
 function decode(record: FileRecord): File {
   if (
@@ -21,6 +23,7 @@ function decode(record: FileRecord): File {
 export function validateBackup(value: unknown): {
   data: Data;
   companies: Company[];
+  brands: Record<string, unknown>;
 } {
   const raw = value as {
     format: string;
@@ -28,6 +31,7 @@ export function validateBackup(value: unknown): {
     companies: Company[];
     files: Record<string, FileRecord>;
     companyFiles: Record<string, FileRecord>;
+    brands?: Record<string, unknown>;
   };
   if (
     !raw ||
@@ -135,7 +139,24 @@ export function validateBackup(value: unknown): {
       typeof a?.reason !== "string"
     )
       throw new Error("Histórico inválido.");
-  return { data, companies: raw.companies.map(normalizeCompany) };
+  const brands: Record<string, unknown> = {};
+  if (raw.brands !== undefined) {
+    if (
+      !raw.brands ||
+      typeof raw.brands !== "object" ||
+      Array.isArray(raw.brands)
+    )
+      throw new Error("Identidades visuais inválidas no backup.");
+    for (const [key, branding] of Object.entries(raw.brands)) {
+      if (key !== "office" && key !== "platform")
+        throw new Error("Identidade visual desconhecida no backup.");
+      brands[key] = importIdentity(
+        JSON.stringify({ format: "nexopen-identity-v1", scope: key, branding }),
+        key,
+      );
+    }
+  }
+  return { data, companies: raw.companies.map(normalizeCompany), brands };
 }
 export function RestoreBackup({
   onRestored,
@@ -145,16 +166,29 @@ export function RestoreBackup({
   onError: (message: string) => void;
 }) {
   const [busy, setBusy] = useState(false);
+  const [includeBrands, setIncludeBrands] = useState(true);
   return (
     <div className="mt-8 border-t border-neutral-200 pt-6">
       <h3 className="text-sm font-semibold mb-3">
-        Restaurar em instalação vazia
+        {cloudConfigured
+          ? "Importar backup para a nuvem"
+          : "Restaurar em instalação vazia"}
       </h3>
       <p className="text-xs text-neutral-500 mb-4">
-        A restauração é permitida somente sem empresas ou movimentos locais para
-        impedir sobrescrita de trabalho existente. Escolha um backup exportado
-        pelo sistema.
+        {cloudConfigured
+          ? "Selecione o backup completo exportado do ambiente antigo. Os dados e anexos serão enviados ao servidor. A importação exige um escritório vazio e não substitui cadastros existentes."
+          : "A restauração é permitida somente sem empresas ou movimentos locais para impedir sobrescrita de trabalho existente. Escolha um backup exportado pelo sistema."}
       </p>
+      {cloudConfigured && (
+        <label className="mb-4 flex items-center gap-2 text-xs text-neutral-600">
+          <input
+            type="checkbox"
+            checked={includeBrands}
+            onChange={(event) => setIncludeBrands(event.target.checked)}
+          />
+          Importar também as identidades visuais, se estiverem no backup.
+        </label>
+      )}
       <label className="btn fx-20 inline-flex cursor-pointer">
         {busy ? "Restaurando…" : "Selecionar backup JSON"}
         <input
@@ -170,10 +204,6 @@ export function RestoreBackup({
             setBusy(true);
             const inserted: string[] = [];
             try {
-              if (cloudConfigured)
-                throw new Error(
-                  "A restauração na nuvem requer um procedimento administrativo. Esta ferramenta restaura somente dados locais.",
-                );
               if (file.size > 100 * 1024 * 1024)
                 throw new Error("O backup deve ter até 100 MB.");
               const [current, companies] = await Promise.all([
@@ -187,15 +217,28 @@ export function RestoreBackup({
                 current.audit.length
               )
                 throw new Error(
-                  "Esta instalação contém dados. Use um navegador vazio ou outro perfil para restaurar sem sobrescrever.",
+                  cloudConfigured
+                    ? "Este escritório já contém dados. A importação não substitui os cadastros existentes."
+                    : "Esta instalação contém dados. Use um navegador vazio ou outro perfil para restaurar sem sobrescrever.",
                 );
               const next = validateBackup(JSON.parse(await file.text()));
               if (
                 !window.confirm(
-                  `Restaurar ${next.companies.length} empresas e ${next.data.items.length} registros neste navegador?`,
+                  cloudConfigured
+                    ? `Importar ${next.companies.length} empresas e ${next.data.items.length} registros para o escritório na nuvem?`
+                    : `Restaurar ${next.companies.length} empresas e ${next.data.items.length} registros neste navegador?`,
                 )
               )
                 return;
+              if (cloudConfigured) {
+                await cloudRestoreSnapshot(
+                  next.companies,
+                  next.data,
+                  includeBrands ? next.brands : {},
+                );
+                await onRestored();
+                return;
+              }
               for (const c of next.companies) {
                 await saveCompany(c);
                 inserted.push(c.id);

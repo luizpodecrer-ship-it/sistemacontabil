@@ -1,5 +1,8 @@
 # Identidade do escritório e administração da plataforma
 
+> Para os testes atuais sem cadastro, use [Acesso direto na nuvem](ACESSO_DIRETO_NUVEM.md). A atualização 008 provisiona uma identidade técnica administradora exclusiva do escritório de testes; não promove uma conta pessoal ou a primeira conta pública. A personalização nesse modo fica no Supabase. Os procedimentos de conta individual e demonstração local descritos abaixo se aplicam aos respectivos modos.
+
+
 ## Onde personalizar
 
 - **Personalização**: nome, logo, cor e endereço ilustrativo do escritório.

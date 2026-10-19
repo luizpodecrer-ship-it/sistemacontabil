@@ -6,6 +6,10 @@ export async function withStore<T>(
   mode: IDBTransactionMode,
   operation: (store: IDBObjectStore) => IDBRequest<T>,
 ): Promise<T> {
+  if (cloudConfigured)
+    throw new Error(
+      "O armazenamento local está desativado. Os dados deste escritório ficam na nuvem.",
+    );
   return new Promise((resolve, reject) => {
     if (!globalThis.indexedDB) {
       reject(new Error("Armazenamento indisponível neste navegador."));

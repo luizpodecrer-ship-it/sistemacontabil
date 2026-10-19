@@ -3,6 +3,10 @@ import { cloudLoadData, cloudMutate } from "../../backend/repository";
 import { initialData, type Data } from "./model";
 const dbName = "nexo-workspace-v1";
 async function openDb(): Promise<IDBDatabase> {
+  if (cloudConfigured)
+    throw new Error(
+      "O armazenamento local está desativado no ambiente em nuvem.",
+    );
   return new Promise((resolve, reject) => {
     const r = indexedDB.open(dbName, 1);
     r.onupgradeneeded = () => r.result.createObjectStore("state");

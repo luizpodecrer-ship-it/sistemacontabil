@@ -1,4 +1,5 @@
-import { cloud, workspaceId } from "./client";
+import { cloud, directCloud, workspaceId } from "./client";
+import { uploadDirectFile, downloadDirectFile } from "./direct-transport";
 import type { Company } from "../features/companies/model";
 import { initialData, type Data } from "../features/workspace/model";
 const companyVersions = new Map<string, string>();
@@ -13,17 +14,20 @@ async function pack(value: unknown, workspace: string): Promise<unknown> {
       .map((n) => n.toString(16).padStart(2, "0"))
       .join("");
     const path = `${workspace}/${hash}`;
-    const { error } = await cloud!.storage
-      .from("workspace-files")
-      .upload(path, value, {
-        upsert: false,
-        contentType: value.type || "application/octet-stream",
-      });
-    if (
-      error &&
-      String((error as { statusCode?: string }).statusCode) !== "409"
-    )
-      throw new Error("Não foi possível armazenar o anexo privado.");
+    if (directCloud) await uploadDirectFile(path, value);
+    else {
+      const { error } = await cloud!.storage
+        .from("workspace-files")
+        .upload(path, value, {
+          upsert: false,
+          contentType: value.type || "application/octet-stream",
+        });
+      if (
+        error &&
+        String((error as { statusCode?: string }).statusCode) !== "409"
+      )
+        throw new Error("Não foi possível armazenar o anexo privado.");
+    }
     return {
       __nexoFile: true,
       path,
@@ -47,11 +51,16 @@ async function pack(value: unknown, workspace: string): Promise<unknown> {
 async function unpack(value: unknown): Promise<unknown> {
   if (value && typeof value === "object" && (value as FileRef).__nexoFile) {
     const ref = value as FileRef;
-    const { data, error } = await cloud!.storage
-      .from("workspace-files")
-      .download(ref.path);
-    if (error || !data)
-      throw new Error("Não foi possível recuperar um anexo privado.");
+    let data: Blob;
+    if (directCloud) data = await downloadDirectFile(ref.path, ref.type);
+    else {
+      const result = await cloud!.storage
+        .from("workspace-files")
+        .download(ref.path);
+      if (result.error || !result.data)
+        throw new Error("Não foi possível recuperar um anexo privado.");
+      data = result.data;
+    }
     return new File([data], ref.name, { type: ref.type });
   }
   if (Array.isArray(value)) return Promise.all(value.map(unpack));
@@ -65,18 +74,26 @@ async function unpack(value: unknown): Promise<unknown> {
 }
 export async function cloudCompanies(): Promise<Company[]> {
   const id = await workspaceId();
-  const { data, error } = await cloud!
-    .from("companies")
-    .select("payload")
-    .eq("workspace_id", id);
-  if (error) throw new Error("Não foi possível ler as empresas em nuvem.");
-  return await Promise.all(
-    (data || []).map(async (row) => {
-      const company = (await unpack(row.payload)) as Company;
-      companyVersions.set(company.id, company.updatedAt || "");
-      return company;
-    }),
-  );
+  const companies: Company[] = [];
+  const pageSize = 500;
+  for (let offset = 0; ; offset += pageSize) {
+    const { data, error } = await cloud!
+      .from("companies")
+      .select("payload")
+      .eq("workspace_id", id)
+      .order("id")
+      .range(offset, offset + pageSize - 1);
+    if (error) throw new Error("Não foi possível ler as empresas em nuvem.");
+    const batch = await Promise.all(
+      (data || []).map(async (row) => {
+        const company = (await unpack(row.payload)) as Company;
+        companyVersions.set(company.id, company.updatedAt || "");
+        return company;
+      }),
+    );
+    companies.push(...batch);
+    if (batch.length < pageSize) return companies;
+  }
 }
 export async function cloudSaveCompany(company: Company) {
   const id = await workspaceId();
@@ -136,4 +153,27 @@ export async function cloudImportCompanies(companies: Company[]) {
       "Importação não salva na nuvem. Confira as migrações do banco e possíveis alterações em outra aba.",
     );
   for (const c of companies) companyVersions.set(c.id, c.updatedAt || "");
+}
+
+export async function cloudRestoreSnapshot(
+  companies: Company[],
+  data: Data,
+  brands: Record<string, unknown> = {},
+) {
+  const id = await workspaceId();
+  const bodies = [];
+  // Bound concurrent uploads and preserve the complete snapshot until the RPC commits.
+  for (const company of companies) bodies.push(await pack(company, id));
+  const operation = await pack(data, id);
+  const { error } = await cloud!.rpc("restore_workspace_backup", {
+    companies: bodies,
+    operation,
+    brands,
+  });
+  if (error)
+    throw new Error(
+      "A importação não foi concluída. O escritório precisa estar vazio e a atualização 008 instalada. Os cadastros existentes foram preservados.",
+    );
+  for (const company of companies)
+    companyVersions.set(company.id, company.updatedAt || "");
 }

@@ -5,6 +5,7 @@ import { loadJobsData } from "../jobs/storage";
 import { Jobs } from "../jobs/app";
 import { CompanyEmployees } from "../employees/company-employees";
 import { cloudConfigured } from "../../backend/client";
+import { canAdmin, loadOffice, loadPlatform } from "../branding/storage";
 import { createRoot, type Root } from "react-dom/client";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
@@ -107,6 +108,8 @@ function normalize(text: string) {
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase();
 }
+let cloudCompanyContext = "",
+  cloudPeriodContext = "";
 export function Workspace({ moduleId }: { moduleId: string }) {
   const [data, setData] = useState<Data>(initialData);
   const [companies, setCompanies] = useState<Company[]>([]);
@@ -115,6 +118,7 @@ export function Workspace({ moduleId }: { moduleId: string }) {
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
   const [companyId, setCompanyId] = useState(() => {
+    if (cloudConfigured) return cloudCompanyContext;
     try {
       return localStorage.getItem("nexo-company-context") || "";
     } catch {
@@ -122,6 +126,7 @@ export function Workspace({ moduleId }: { moduleId: string }) {
     }
   });
   const [period, setPeriod] = useState(() => {
+    if (cloudConfigured) return cloudPeriodContext || today().slice(0, 7);
     try {
       return localStorage.getItem("nexo-period-context") || today().slice(0, 7);
     } catch {
@@ -163,6 +168,11 @@ export function Workspace({ moduleId }: { moduleId: string }) {
     };
   }, []);
   useEffect(() => {
+    if (cloudConfigured) {
+      cloudCompanyContext = companyId;
+      cloudPeriodContext = period;
+      return;
+    }
     try {
       localStorage.setItem("nexo-company-context", companyId);
       localStorage.setItem("nexo-period-context", period);
@@ -919,6 +929,16 @@ export function Workspace({ moduleId }: { moduleId: string }) {
           companies: backupCompanies,
           files,
           companyFiles,
+          ...(cloudConfigured
+            ? {
+                brands: {
+                  office: await loadOffice(),
+                  ...((await canAdmin())
+                    ? { platform: await loadPlatform() }
+                    : {}),
+                },
+              }
+            : {}),
         }),
         "application/json",
       );
@@ -2143,11 +2163,11 @@ export function Workspace({ moduleId }: { moduleId: string }) {
         </>
       )}
       {moduleId === "backup" && (
-        <Section title="Exportação completa local">
+        <Section title="Backup e migração de dados">
           <p className="text-sm text-neutral-500 leading-relaxed mb-5">
-            Exporte empresas, registros operacionais e anexos para um arquivo
-            JSON. Não é um backup automático em nuvem. A restauração precisa
-            validar a versão e proteger os dados existentes.
+            {cloudConfigured
+              ? "Os cadastros e anexos estão no banco em nuvem. Você pode importar o backup do ambiente antigo em um escritório vazio ou baixar uma cópia quando precisar."
+              : "Exporte empresas, registros operacionais e anexos para um arquivo JSON. A restauração protege os dados existentes."}
           </p>
           <button
             disabled={busy}
@@ -2155,14 +2175,18 @@ export function Workspace({ moduleId }: { moduleId: string }) {
             onClick={() => void backup()}
           >
             <Download className="w-4 h-4" />
-            Exportar backup completo
+            {cloudConfigured
+              ? "Baixar cópia dos dados"
+              : "Exportar backup completo"}
           </button>
           <RestoreBackup
             onRestored={async () => {
               setData(await loadData());
               setCompanies(await listCompanies());
               setNotice(
-                "Backup restaurado. Os dados locais foram atualizados.",
+                cloudConfigured
+                  ? "Backup importado. Os dados estão salvos na nuvem."
+                  : "Backup restaurado. Os dados locais foram atualizados.",
               );
             }}
             onError={setNotice}

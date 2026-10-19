@@ -1,6 +1,8 @@
 # Conectar o sistema ao banco e login reais
 
-A Netlify ou a Vercel hospeda o site. Para contas e dados compartilhados, o código também precisa de um serviço de banco, autenticação e arquivos. O projeto já possui um adaptador opcional para Supabase. A ativação ainda depende de criar/configurar esse serviço e executar a validação no ambiente real. Até lá, o site continua no modo local.
+**Para os testes atuais sem cadastro pessoal na Vercel, siga [Acesso direto na nuvem](ACESSO_DIRETO_NUVEM.md).** Esse é o modo padrão da API Vercel e requer a migração 008 e credenciais exclusivas do servidor. Falhas de configuração no site publicado não ativam armazenamento local.
+
+O restante deste documento descreve o modo de contas individuais, mantido para a próxima etapa: configure `NEXOPEN_ACCESS_MODE=accounts` na API para usá-lo. A hospedagem serve o site; o Supabase fornece banco, autenticação e arquivos.
 
 ## 1. Criar o projeto
 
@@ -26,7 +28,7 @@ No Supabase, abra **Authentication → Sign In / Providers** (em versões anteri
 
 Antes de cadastrar, a interface verifica `/auth/v1/settings` com a chave pública. Se `mailer_autoconfirm` não for `true` ou o cadastro estiver desativado, informa que a instalação precisa ser configurada e não cria uma conta pendente nem dispara e-mail. O backend continua validando unicidade, senha e autenticação. Uma conta recém-criada não recebe automaticamente permissão administrativa.
 
-Em **Authentication → URL Configuration**, mantenha **Site URL** e **Redirect URLs** com o endereço publicado, por exemplo `https://nexopen.netlify.app`. Isso também preserva a configuração de eventuais links legados; a nova interface não inicia recuperação por e-mail.
+Em **Authentication → URL Configuration**, mantenha **Site URL** e **Redirect URLs** com o endereço publicado, por exemplo `https://sistemacontabil-phi.vercel.app`. Isso também preserva a configuração de eventuais links legados; a nova interface não inicia recuperação por e-mail.
 
 O usuário usa de 3 a 32 caracteres ASCII: letras sem acentos, números, ponto, hífen ou sublinhado, começando e terminando com letra/número. Espaços nas extremidades e maiúsculas são normalizados; `Luiz.Queiroz` e `luiz.queiroz` são o mesmo usuário. Nomes diferentes não se tornam o mesmo identificador por regras de ponto ou hífen de provedores de e-mail. A senha de criação deve ter pelo menos 12 caracteres e também cumprir as políticas configuradas no Supabase.
 
@@ -79,4 +81,4 @@ Os erros são traduzidos por códigos conhecidos ou mensagens legadas explicitam
 6. Teste o procedimento administrativo de recuperação de senha, concorrência entre abas, indisponibilidade de rede e download de anexos.
 7. Execute a jornada de fechamento e valide com o responsável técnico/contábil. Amplie a matriz de testes de autorização antes de convidar outras pessoas.
 
-As empresas e arquivos locais anteriores não são transferidos automaticamente ao conectar Supabase. O backup pode exportá-los, mas a restauração implementada neste momento é apenas local e em instalação vazia; a migração para nuvem exige um fluxo técnico próprio.
+As empresas e arquivos locais anteriores não são transferidos automaticamente ao conectar Supabase. A atualização 008 habilita a importação de backup completo em um escritório vazio, incluindo anexos e identidades visuais quando presentes. Consulte [Acesso direto na nuvem](ACESSO_DIRETO_NUVEM.md#importar-os-cadastros-que-estavam-no-navegador).
