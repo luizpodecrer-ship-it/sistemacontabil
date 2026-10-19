@@ -26,6 +26,15 @@ async function noLocalData(context: BrowserContext) {
 }
 async function enter(page: Page) {
   await page.goto(link);
+  await expect(page.getByRole("status")).toContainText(
+    "Seu escritório está pronto",
+  );
+  await expect(
+    page.getByRole("heading", { name: "Dashboard", exact: true }),
+  ).toHaveCount(0);
+  await page
+    .getByRole("button", { name: "Acessar ambiente de testes", exact: true })
+    .click();
   await expect(
     page.getByRole("heading", { name: "Dashboard", exact: true }),
   ).toBeVisible();
@@ -35,6 +44,40 @@ async function enter(page: Page) {
 async function clear(page: Page) {
   await page.request.get("/__test/cloud?reset");
 }
+
+test("Entrada apresenta a marca em computador, tablet e celular sem abrir dados públicos", async ({
+  page,
+  context,
+}) => {
+  await clear(page);
+  await noLocalData(context);
+  for (const width of [1440, 768, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/");
+    await expect(
+      page.getByRole("heading", {
+        name: "Bom ter você de volta.",
+        exact: true,
+      }),
+    ).toBeVisible();
+    await expect(page.getByRole("status")).toContainText("link privado");
+    await page
+      .getByRole("button", { name: "Acessar ambiente de testes", exact: true })
+      .click();
+    await expect(page.getByRole("status")).toContainText("link privado");
+    await expect(
+      page.getByRole("heading", { name: "Dashboard", exact: true }),
+    ).toHaveCount(0);
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+  }
+  expect(await page.evaluate(() => (window as any).__localAttempts)).toEqual(
+    [],
+  );
+});
 
 test("Link privado abre sem cadastro, não usa armazenamento local e persiste cadastros entre dispositivos", async ({
   page,
