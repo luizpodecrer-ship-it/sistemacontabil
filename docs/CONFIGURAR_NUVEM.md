@@ -62,6 +62,9 @@ O acesso direto da demonstração não cria uma conta em `Authentication → Use
 - **Nome de usuário ou senha inválidos:** confira o nome e a senha. Confirme se a conta está no mesmo projeto Supabase indicado por `VITE_SUPABASE_URL` na versão publicada.
 - **Conta ainda não liberada / cadastro por usuário não habilitado:** revise a configuração de autenticação descrita acima. A interface não pede que um usuário sem e-mail confirme uma mensagem.
 - **Serviço de acesso não configurado corretamente:** confira se a URL e a chave pública pertencem ao mesmo projeto e gere um novo build.
+- **Conexão recusada / conferir a chave pública:** a consulta de configuração retornou HTTP 401 ou 403. Confira a chave pública, o projeto a que ela pertence e o acesso ao serviço. Não troque por uma chave administrativa.
+- **Serviço não encontrado / conferir a URL:** a consulta retornou HTTP 404. Use a URL do projeto, não o endereço do painel Supabase nem o endereço da Netlify. URLs copiadas com espaços ou barras finais são normalizadas igualmente no cliente e na consulta.
+- **Resposta incompatível / serviço indisponível:** confira se a URL aponta ao Supabase; uma página HTML não é uma resposta de autenticação. Erros HTTP 5xx são informados como indisponibilidade, sem atribuir a falha à senha.
 - **Limite de tentativas:** aguarde o intervalo do serviço antes de tentar novamente.
 
 Os erros são traduzidos por códigos conhecidos ou mensagens legadas explicitamente reconhecidas, sem mostrar mensagens internas, chaves ou identificadores de outras contas. Uma falha ao abrir a sessão libera novamente o formulário, em vez de deixá-lo preso em “Aguarde…”. A permissão de administrador da identidade visual é separada do login; concedê-la não corrige senha ou liberação da conta.

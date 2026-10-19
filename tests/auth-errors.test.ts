@@ -11,6 +11,9 @@ test("Acesso distingue credenciais, liberação, cadastro e limites sem pedir e-
     ["over_email_send_rate_limit", /limite de tentativas/],
     ["email_address_not_authorized", /cadastro por nome de usuário/],
     ["username_signup_not_configured", /cadastro por nome de usuário/],
+    ["auth_public_key_rejected", /conferir a chave pública/],
+    ["auth_endpoint_not_found", /conferir a URL/],
+    ["auth_service_unavailable", /indisponível/],
     ["weak_password", /requisitos desta instalação/],
     ["session_expired", /sessão expirou/],
   ] as const)

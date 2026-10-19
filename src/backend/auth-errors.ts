@@ -28,6 +28,14 @@ export function authErrorMessage(error: unknown): string {
       return "O cadastro por nome de usuário ainda não está habilitado nesta instalação. Solicite a configuração ao administrador.";
     case "auth_configuration_invalid":
       return "O serviço de acesso não está configurado corretamente. Avise o administrador.";
+    case "auth_public_key_rejected":
+      return "A conexão de acesso foi recusada. O administrador precisa conferir a chave pública e se ela pertence ao projeto configurado.";
+    case "auth_endpoint_not_found":
+      return "O serviço de acesso não foi encontrado. O administrador precisa conferir a URL do projeto configurado.";
+    case "auth_settings_invalid":
+      return "O serviço de acesso retornou uma resposta incompatível. O administrador precisa conferir a URL do projeto configurado.";
+    case "auth_service_unavailable":
+      return "O serviço de acesso está indisponível no momento. Aguarde e tente novamente.";
     case "signup_disabled":
       return "A criação de contas está desativada nesta instalação. Solicite acesso ao administrador.";
     case "email_provider_disabled":

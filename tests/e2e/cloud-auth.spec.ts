@@ -130,6 +130,38 @@ test("Acesso distingue usuário ou senha inválidos, conta pendente e chave inco
   );
 });
 
+test("Cadastro identifica chave recusada e URL incorreta sem tentar criar uma conta", async ({
+  page,
+}) => {
+  let status = 401;
+  let signups = 0;
+  await page.route("https://nexopen-auth-test.supabase.co/**", (route) => {
+    const path = new URL(route.request().url()).pathname;
+    if (path.endsWith("/auth/v1/settings")) {
+      expect(new URL(route.request().url()).pathname).toBe("/auth/v1/settings");
+      expect(route.request().headers().apikey).toBe("sb_publishable_test_only");
+      return json(route, { message: "Internal diagnostic" }, status);
+    }
+    if (path.endsWith("/auth/v1/signup")) signups++;
+    return workspaceResponse(route);
+  });
+  await page.goto("/");
+  await page.getByRole("button", { name: "Criar conta", exact: true }).click();
+  await credentials(page);
+  const create = page
+    .locator("form")
+    .getByRole("button", { name: "Criar conta", exact: true });
+  await create.click();
+  await expect(page.getByRole("status")).toContainText(
+    "conferir a chave pública",
+  );
+  await expect(create).toBeEnabled();
+  status = 404;
+  await create.click();
+  await expect(page.getByRole("status")).toContainText("conferir a URL");
+  expect(signups).toBe(0);
+});
+
 test("Cadastro sem e-mail só cria conta com liberação imediata configurada e entra no escritório", async ({
   page,
 }) => {
