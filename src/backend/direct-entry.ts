@@ -3,6 +3,9 @@ import { defaultPlatform } from "../features/branding/model";
 import { applyPlatform, loadPlatform } from "../features/branding/storage";
 let generation = 0;
 let clearListener: (() => void) | undefined;
+// Retain the private-link authorization only for this open tab's lifetime.
+// Signing out still removes the server session cookie; no browser storage is used.
+let tabAccess = "";
 export function unmountDirectEntry() {
   generation++;
   clearListener?.();
@@ -27,11 +30,16 @@ export function mountDirectEntry(
       if (logout) {
         await directSession("", true);
         logout = false;
+        message.textContent = tabAccess
+          ? "Você saiu do sistema. Clique abaixo para acessar novamente."
+          : "Você saiu do sistema. Abra seu link privado para entrar novamente.";
+        return;
       }
       const params = new URLSearchParams(location.hash.slice(1));
-      const access = params.get("test_access") || "";
+      const access = params.get("test_access") || tabAccess;
       await directSession(access);
       if (active !== generation) return;
+      if (access) tabAccess = access;
       if (access)
         history.replaceState(null, "", location.pathname + location.search);
       const platform = await loadPlatform();
@@ -50,10 +58,10 @@ export function mountDirectEntry(
       if (active === generation) button.disabled = false;
     }
   };
-  button.onclick = () => {
+  button.onclick = async () => {
     if (!authorized) {
-      void connect();
-      return;
+      await connect();
+      if (!authorized || active !== generation) return;
     }
     button.disabled = true;
     void Promise.resolve()

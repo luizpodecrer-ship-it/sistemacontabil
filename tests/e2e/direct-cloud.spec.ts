@@ -136,7 +136,26 @@ test("Link privado abre sem cadastro, não usa armazenamento local e persiste ca
   await page
     .getByRole("button", { name: "Sair do sistema", exact: true })
     .click();
-  await expect(page.getByRole("status")).toContainText("link privado");
+  await expect(page.getByRole("status")).toContainText("Você saiu do sistema");
+  expect(
+    (await page.request.get("/api/cloud/rest/v1/companies?select=*")).status(),
+  ).toBe(401);
+  await page
+    .getByRole("button", { name: "Acessar ambiente de testes", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Dashboard", exact: true }),
+  ).toBeVisible();
+  await openModule(page, "Sindicatos");
+  await expect(
+    page
+      .getByRole("region", { name: "Tabela de sindicatos" })
+      .getByText("Sindicato Teste na Nuvem", { exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Sair do sistema", exact: true })
+    .click();
+  await expect(page.getByRole("status")).toContainText("Você saiu do sistema");
   await page.goto("/");
   await expect(page.getByRole("status")).toContainText("link privado");
 });
