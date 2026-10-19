@@ -67,6 +67,8 @@ export function createCloudHandler(env = process.env, dependencies = {}) {
           ? incoming.searchParams.get("__nexopen_path") || ""
           : "";
       incoming.searchParams.delete("__nexopen_path");
+      // Vercel also exposes the named rewrite capture as a query parameter.
+      incoming.searchParams.delete("cloudPath");
       if (route === "status" && req.method === "GET")
         return sendJson(res, 200, {
           mode: config.mode,

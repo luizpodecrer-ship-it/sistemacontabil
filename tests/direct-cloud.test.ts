@@ -88,7 +88,7 @@ test("Servidor de testes: sessão privada, CSRF, escopo, anexos grandes e falhas
   );
   assert.equal((await call("rest/v1/companies", { headers })).status, 200);
   const rewritten = await fetch(
-    base + "/api/cloud?__nexopen_path=rest%2Fv1%2Fcompanies&select=payload",
+    base + "/api/cloud?__nexopen_path=rest%2Fv1%2Fcompanies&cloudPath=rest%2Fv1%2Fcompanies&select=payload",
     { headers },
   );
   assert.equal(
