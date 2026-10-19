@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { Upload, ShieldCheck, Building2, Save } from "lucide-react";
 import { cloudConfigured } from "../../backend/client";
 import { canAdmin, loadOffice, loadPlatform, saveBrand } from "./storage";
+import { exportIdentity, importIdentity, identityFileLimit } from "./transfer";
 import {
   colors,
   colorNames,
@@ -160,6 +161,51 @@ function Branding({
       setBusy(false);
     }
   }
+  function exportFile() {
+    try {
+      const scope = platform ? "platform" : "office";
+      const url = URL.createObjectURL(
+        new Blob([exportIdentity(draft, scope)], {
+          type: "application/json",
+        }),
+      );
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `nexopen-identidade-${platform ? "sistema" : "escritorio"}.json`;
+      document.body.append(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      setMessage(
+        "Identidade exportada com os textos, cores e imagens da configuração exibida.",
+      );
+    } catch (error) {
+      setMessage((error as Error).message);
+    }
+  }
+  async function importFile(file: File | undefined) {
+    if (!file) return;
+    setBusy(true);
+    setMessage("");
+    try {
+      if (file.size > identityFileLimit)
+        throw new Error("O arquivo de identidade deve ter até 10 MB.");
+      const value = importIdentity(
+        await file.text(),
+        platform ? "platform" : "office",
+      );
+      if (!mounted.current) return;
+      setDraft(value);
+      setChanged(true);
+      setMessage(
+        "Identidade carregada na prévia. Confira os textos e logos e clique em Salvar para aplicar.",
+      );
+    } catch (error) {
+      if (mounted.current) setMessage((error as Error).message);
+    } finally {
+      if (mounted.current) setBusy(false);
+    }
+  }
   if (loading)
     return (
       <p role="status" className="text-sm text-neutral-500">
@@ -208,6 +254,53 @@ function Branding({
           </p>
         )}
       </div>
+      <section
+        className="mb-7 rounded-xl border border-neutral-200 bg-white p-4"
+        aria-label="Transferir identidade visual"
+      >
+        <h2 className="text-sm font-semibold">Transferir identidade visual</h2>
+        <p className="mt-2 max-w-2xl text-xs leading-5 text-neutral-500">
+          Exporte esta configuração para levar a outro endereço ou navegador.
+          {platform &&
+            " Inclui todos os textos da entrada, logos, ícones, cores e ajustes de tamanho."}{" "}
+          A importação carrega uma prévia; as alterações só são aplicadas ao
+          salvar.
+        </p>
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            className={button}
+            disabled={busy}
+            onClick={exportFile}
+          >
+            Exportar identidade
+          </button>
+          <label
+            className={`${button} relative overflow-hidden ${busy ? "opacity-40" : "cursor-pointer"}`}
+          >
+            Importar identidade
+            <input
+              type="file"
+              accept=".json,application/json"
+              aria-label="Importar identidade"
+              disabled={busy}
+              className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+              onChange={(event) => {
+                void importFile(event.target.files?.[0]);
+                event.target.value = "";
+              }}
+            />
+          </label>
+        </div>
+      </section>
+      {message && (
+        <p
+          role="alert"
+          className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900"
+        >
+          {message}
+        </p>
+      )}
       <div className="grid gap-8 xl:grid-cols-2">
         <form
           className="space-y-6"
@@ -491,14 +584,6 @@ function Branding({
                 Endereço ilustrativo. Nenhum domínio será criado.
               </span>
             </label>
-          )}
-          {message && (
-            <p
-              role="alert"
-              className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900"
-            >
-              {message}
-            </p>
           )}
           <button
             disabled={busy || !changed}

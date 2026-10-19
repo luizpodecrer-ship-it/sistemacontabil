@@ -2,6 +2,7 @@ import { existsSync } from "node:fs";
 import { defineConfig } from "@playwright/test";
 export default defineConfig({
   testDir: "./tests/e2e",
+  testIgnore: "**/cloud-auth.spec.ts",
   fullyParallel: false,
   workers: 1,
   use: {

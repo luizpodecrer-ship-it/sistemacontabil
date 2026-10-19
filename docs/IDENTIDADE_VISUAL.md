@@ -23,6 +23,20 @@ Sem variáveis Supabase, escritório e plataforma são salvos separadamente nest
 
 A marca do sistema é aplicada ao menu expandido, ao menu recolhido, à entrada local, ao título da aba e ao favicon. O ícone deve ser enviado separadamente do logo. A cor de destaque também tem prévia própria. No modo com autenticação a tela de entrada usa a marca pública do sistema, carregada do banco.
 
+## Transferir os textos e logos para outro endereço
+
+As personalizações locais não acompanham o código enviado ao GitHub e o backup operacional `nexo-backup-v1` não contém a identidade visual. Para levar a apresentação antiga à Netlify/Supabase:
+
+1. Abra o endereço antigo no navegador em que os textos e logos foram salvos.
+2. Entre no sistema e acesse **Configurações → Identidade do sistema → Transferir identidade visual**.
+3. Clique em **Exportar identidade**. O JSON inclui a configuração exibida, todos os textos da entrada, logos/ícones PNG, cores, tamanhos e alinhamentos. Não inclui cadastros, senhas, chaves de API ou permissões administrativas.
+4. No novo endereço, entre com uma conta administradora da plataforma, provisionada conforme a próxima seção. Acesse **Configurações → Identidade do sistema**, clique em **Importar identidade**, selecione o JSON e confira a prévia.
+5. Clique em **Salvar identidade do sistema**. Somente esse salvamento grava a apresentação no Supabase para os visitantes da mesma instalação. A importação não concede permissões nem promove a conta.
+
+Para o nome/logo/cor do escritório, repita em **Configurações → Personalização do escritório**. Os arquivos são separados por tipo; uma identidade de escritório não pode substituir a identidade do sistema. A importação limita o JSON a 10 MB, valida campos e imagens e mantém a configuração atual caso haja erro. Configurações incompletas antigas recebem os padrões apenas nos campos novos ausentes. Logos são preservados sem conversão.
+
+Na entrada em nuvem, os textos padrão são exibidos desde a primeira renderização enquanto a apresentação pública é carregada. Se o carregamento falhar, uma mensagem persistente permite tentar novamente, mantendo o painel preenchido. Isso não recupera os textos personalizados que ainda estão apenas no navegador antigo. A personalização é lida do banco; configurações locais nunca são publicadas automaticamente no modo em nuvem.
+
 ## Ativar administração autenticada e persistência compartilhada
 
 Esta etapa é para uma instalação com Supabase, descrita em [CONFIGURAR_NUVEM.md](CONFIGURAR_NUVEM.md). Não é preciso executá-la para analisar a prévia local.
@@ -38,7 +52,7 @@ values ('UUID-DA-CONTA-ADMINISTRADORA')
 on conflict do nothing;
 ```
 
-5. Entre novamente no sistema com essa conta. O menu **Administração → Identidade do sistema** aparecerá.
+5. Entre novamente no sistema com essa conta. O menu **Configurações → Identidade do sistema** aparecerá.
 6. Envie o logo e o ícone e salve. A configuração do sistema será compartilhada com as instalações conectadas ao mesmo banco; cada escritório mantém a própria configuração.
 
 Não existe cadastro público de administrador, promoção automática da primeira conta ou escolha de permissão no navegador. A lista de administradores só pode ser alterada pela administração confiável do banco.

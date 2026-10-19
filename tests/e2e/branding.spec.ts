@@ -1,6 +1,7 @@
 import { openModule } from "./navigation-helper";
 import { selectOption } from "./select-helper";
 import { test, expect, type Page } from "@playwright/test";
+import { readFile } from "node:fs/promises";
 async function enter(page: Page) {
   await page.goto("/");
   await page.getByRole("button", { name: "Explorar a prévia" }).click();
@@ -24,6 +25,98 @@ async function imageFile(page: Page, width: number, height: number) {
     buffer: Buffer.from(data, "base64"),
   };
 }
+test("Identidade pode ser transferida com textos e logos, conferida na prévia e salva", async ({
+  page,
+}) => {
+  await enter(page);
+  await openModule(page, "Identidade do sistema");
+  await page
+    .getByLabel("Nome do sistema", { exact: true })
+    .fill("Nexopen Transferido");
+  await page
+    .getByLabel("Título do formulário", { exact: true })
+    .fill("Olá! Seja bem-vindo!");
+  await page
+    .getByLabel("Título do painel lateral", { exact: true })
+    .fill("Plataforma Contábil\nde Alta Performance");
+  await page
+    .getByLabel("Enviar ícone do lado esquerdo", { exact: true })
+    .setInputFiles(await imageFile(page, 96, 96));
+  await page
+    .getByLabel("Enviar logo do lado direito", { exact: true })
+    .setInputFiles(await imageFile(page, 400, 200));
+  const downloadPromise = page.waitForEvent("download");
+  await page
+    .getByRole("button", { name: "Exportar identidade", exact: true })
+    .click();
+  const download = await downloadPromise;
+  const contents = await readFile((await download.path())!, "utf8");
+  const exported = JSON.parse(contents);
+  expect(exported.scope).toBe("platform");
+  expect(exported.branding.loginIcon).toMatch(/^data:image\/png;base64,/);
+  expect(exported.branding.loginLogo).toMatch(/^data:image\/png;base64,/);
+  expect(
+    await page.evaluate(() => localStorage.getItem("nexo-platform-brand")),
+  ).toBeNull();
+  await page
+    .getByLabel("Título do formulário", { exact: true })
+    .fill("Outro texto");
+  await page
+    .getByLabel("Importar identidade", { exact: true })
+    .setInputFiles({
+      name: "identidade.json",
+      mimeType: "application/json",
+      buffer: Buffer.from(contents),
+    });
+  await expect(page.getByRole("alert")).toContainText("carregada na prévia");
+  await expect(
+    page.getByLabel("Título do formulário", { exact: true }),
+  ).toHaveValue(exported.branding.loginTitle);
+  expect(
+    await page.evaluate(() => localStorage.getItem("nexo-platform-brand")),
+  ).toBeNull();
+  await page
+    .getByLabel("Importar identidade", { exact: true })
+    .setInputFiles({
+      name: "arquivo-errado.json",
+      mimeType: "application/json",
+      buffer: Buffer.from(JSON.stringify({ ...exported, scope: "office" })),
+    });
+  await expect(page.getByRole("alert")).toContainText("outro tipo");
+  await expect(
+    page.getByLabel("Título do formulário", { exact: true }),
+  ).toHaveValue(exported.branding.loginTitle);
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await page
+    .getByRole("button", {
+      name: "Salvar identidade do sistema local",
+      exact: true,
+    })
+    .click();
+  await expect(page).toHaveTitle("Nexopen Transferido — Gestão contábil");
+  await page.getByRole("button", { name: "Abrir menu", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Sair do sistema", exact: true })
+    .click();
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await expect(page.locator("h1")).toHaveText(exported.branding.loginTitle);
+  await expect(page.locator("h2")).toHaveText(exported.branding.loginHeadline);
+  await expect(page.locator('[data-login-side="left"] img')).toHaveAttribute(
+    "src",
+    exported.branding.loginIcon,
+  );
+  await expect(page.locator('[data-login-side="right"] img')).toHaveAttribute(
+    "src",
+    exported.branding.loginLogo,
+  );
+  await page.reload();
+  await expect(page.locator("h2")).toHaveText(exported.branding.loginHeadline);
+});
 test("Escritório: prévia ampliada, formatos máximos, branco e proporção persistente", async ({
   page,
 }) => {

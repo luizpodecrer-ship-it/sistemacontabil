@@ -3,6 +3,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { useEffect, useState } from "react";
 import { FormField } from "@/components/ui/form-field";
 import { cloud, clearWorkspace, recoveryFlow } from "./client";
+import { defaultPlatform } from "../features/branding/model";
 let root: Root | undefined;
 export function unmountCloudAuth() {
   root?.unmount();
@@ -25,6 +26,9 @@ function CloudAuth({ done, logout }: { done: () => void; logout: boolean }) {
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(true);
+  const [brand, setBrand] = useState(defaultPlatform);
+  const [brandError, setBrandError] = useState(false);
+  const [brandAttempt, setBrandAttempt] = useState(0);
   useEffect(() => {
     let active = true;
     (async () => {
@@ -50,10 +54,24 @@ function CloudAuth({ done, logout }: { done: () => void; logout: boolean }) {
     };
   }, []);
   useEffect(() => {
+    let active = true;
     void loadPlatform()
-      .then(applyPlatform)
-      .catch(() => {});
-  }, [busy, mode]);
+      .then((value) => {
+        if (active) {
+          setBrand(value);
+          setBrandError(false);
+        }
+      })
+      .catch(() => {
+        if (active) setBrandError(true);
+      });
+    return () => {
+      active = false;
+    };
+  }, [brandAttempt]);
+  useEffect(() => {
+    applyPlatform(brand);
+  }, [brand, busy, mode]);
   const submit = async () => {
     setMessage("");
     if (!email && mode !== "password") {
@@ -128,14 +146,19 @@ function CloudAuth({ done, logout }: { done: () => void; logout: boolean }) {
                 ? "Recuperar acesso"
                 : mode === "password"
                   ? "Definir nova senha"
-                  : "Acesse seu escritório"}
+                  : brand.loginTitle}
           </h1>
           <p
             data-login-text={mode === "login" ? "loginSubtitle" : undefined}
             className="text-sm text-neutral-500 mb-7"
           >
-            Conexão autenticada ao banco configurado. Cada conta administra seu
-            próprio escritório.
+            {mode === "login"
+              ? brand.loginSubtitle
+              : mode === "signup"
+                ? "Crie sua conta para começar."
+                : mode === "reset"
+                  ? "Informe seu e-mail para receber as instruções."
+                  : "Escolha uma nova senha para acessar sua conta."}
           </p>
           <form
             className="space-y-5"
@@ -191,7 +214,9 @@ function CloudAuth({ done, logout }: { done: () => void; logout: boolean }) {
                 {busy
                   ? "Aguarde…"
                   : mode === "login"
-                    ? "Entrar"
+                    ? brand.loginButton === defaultPlatform.loginButton
+                      ? "Entrar"
+                      : brand.loginButton
                     : mode === "signup"
                       ? "Criar conta"
                       : mode === "password"
@@ -221,7 +246,25 @@ function CloudAuth({ done, logout }: { done: () => void; logout: boolean }) {
           <p
             data-login-text="loginFormFooter"
             className="mt-6 text-center text-xs text-neutral-500"
-          />
+          >
+            {brand.loginFormFooter}
+          </p>
+          {brandError && (
+            <div
+              role="status"
+              className="mt-5 rounded-lg border border-neutral-200 p-3 text-xs leading-5 text-neutral-600"
+            >
+              Não foi possível carregar a personalização da entrada. Exibindo a
+              apresentação padrão.
+              <button
+                type="button"
+                className="mt-2 block underline"
+                onClick={() => setBrandAttempt((value) => value + 1)}
+              >
+                Tentar carregar personalização novamente
+              </button>
+            </div>
+          )}
         </div>
       </section>
       <aside
@@ -233,17 +276,25 @@ function CloudAuth({ done, logout }: { done: () => void; logout: boolean }) {
           <p
             data-login-text="loginEyebrow"
             className="mb-5 text-xs uppercase tracking-wider opacity-75"
-          />
+          >
+            {brand.loginEyebrow}
+          </p>
           <h2
             data-login-text="loginHeadline"
             className="max-w-lg text-5xl font-medium leading-tight"
-          />
+          >
+            {brand.loginHeadline}
+          </h2>
           <p
             data-login-text="loginDescription"
             className="mt-6 max-w-md text-sm opacity-80"
-          />
+          >
+            {brand.loginDescription}
+          </p>
         </div>
-        <p data-login-text="loginFooter" className="text-xs opacity-75" />
+        <p data-login-text="loginFooter" className="text-xs opacity-75">
+          {brand.loginFooter}
+        </p>
       </aside>
     </main>
   );
